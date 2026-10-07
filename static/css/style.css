@@ -870,7 +870,7 @@ h1, h2, h3, h4, .brand-name, .hero-title, .nav-brand-title {
 .header-end {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 12px;
   flex-shrink: 0;
   margin-left: auto;
 }
@@ -945,13 +945,18 @@ html[data-theme="light"] option {
   justify-content: center;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   flex-shrink: 0;
 }
 .studio-icon-btn:hover {
   background: var(--bg-card-hover);
-  color: var(--text-primary);
-  border-color: var(--border-light);
+  color: var(--accent-primary);
+  border-color: var(--accent-primary-subtle);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(56, 189, 248, 0.15);
+}
+.studio-icon-btn:active {
+  transform: translateY(1px) scale(0.95);
 }
 
 /* ================= CHAT CANVAS / FEED ================= */
