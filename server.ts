@@ -9,6 +9,7 @@ import {
   LANGUAGE_REGISTRY,
   generateNeuralTTS,
   transcribeAudio,
+  transcribeAndChatAudio,
 } from "./src/ai.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -238,6 +239,30 @@ app.post("/api/transcribe", apiRateLimiter(45, 60000), async (req: Request, res:
   } catch (err) {
     console.error("Transcription endpoint error:", err);
     return res.status(500).json({ error: "Failed to transcribe audio" });
+  }
+});
+
+// Single-Pass Audio Transcribe & Chat Route for Hyper-Fast Voice
+app.post("/api/voice-chat", apiRateLimiter(45, 60000), async (req: Request, res: Response) => {
+  const { audio, mimeType, name } = req.body;
+
+  if (!audio) {
+    return res.status(400).json({ error: "Missing audio parameter" });
+  }
+
+  try {
+    const result = await transcribeAndChatAudio(audio, mimeType || "audio/webm", name);
+    if (!result) {
+      return res.status(500).json({ error: "Failed to process audio" });
+    }
+
+    // Save company session analytics
+    logCompanyInteraction(name || "Voice Customer", result.user_query_native || "Voice Query", result);
+
+    return res.json(result);
+  } catch (err) {
+    console.error("Voice chat endpoint error:", err);
+    return res.status(500).json({ error: "Voice processing failed" });
   }
 });
 

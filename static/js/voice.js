@@ -440,7 +440,7 @@
 
           window.dispatchEvent(new CustomEvent("vox-transcribing-start"));
 
-          // Convert to base64 and send to transcription endpoint
+          // Convert to base64 and send to unified single-pass voice-chat endpoint for hyper-fast response
           const reader = new FileReader();
           reader.readAsDataURL(audioBlob);
           reader.onloadend = () => {
@@ -450,21 +450,27 @@
               return;
             }
 
-            fetch("/api/transcribe", {
+            const activeName = (window.voxCustomerName || "").trim();
+            fetch("/api/voice-chat", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ audio: base64, mimeType: mime }),
+              body: JSON.stringify({ audio: base64, mimeType: mime, name: activeName }),
             })
               .then((res) => {
                 if (!res.ok) throw new Error("HTTP " + res.status);
                 return res.json();
               })
               .then((data) => {
-                const transcribed = (data.text || "").trim();
-                window.dispatchEvent(new CustomEvent("vox-listen-end", { detail: { text: transcribed } }));
+                if (data && data.reply) {
+                  window.dispatchEvent(new CustomEvent("vox-voice-response", { detail: data }));
+                } else if (data && data.text) {
+                  window.dispatchEvent(new CustomEvent("vox-listen-end", { detail: { text: data.text } }));
+                } else {
+                  window.dispatchEvent(new CustomEvent("vox-listen-end", { detail: { text: "" } }));
+                }
               })
               .catch((err) => {
-                console.warn("Audio transcription error:", err);
+                console.warn("Audio voice-chat error:", err);
                 window.dispatchEvent(new CustomEvent("vox-listen-end", { detail: { text: "" } }));
               });
           };

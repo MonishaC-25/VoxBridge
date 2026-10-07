@@ -1769,3 +1769,89 @@ export async function transcribeAudio(
 
   return null;
 }
+
+export async function transcribeAndChatAudio(
+  base64Data: string,
+  mimeType: string = "audio/webm",
+  customerName?: string
+): Promise<AIResponseResult | null> {
+  const ai = getAiClient();
+  const key = resolveGeminiKey();
+  const cleanMime = (mimeType || "audio/webm").split(";")[0].trim().toLowerCase();
+  const name = customerName?.trim() || "";
+
+  if (ai && isValidGeminiKey(key)) {
+    const modelsToTry = ["gemini-3.5-flash-lite", "gemini-3.8-flash"];
+    for (const model of modelsToTry) {
+      try {
+        console.log(`Attempting unified audio transcribe & chat with ${model}...`);
+        const audioPart = {
+          inlineData: {
+            mimeType: cleanMime,
+            data: base64Data,
+          },
+        };
+
+        const promptText = `Listen to the customer's spoken audio carefully.
+You are VoxBridge, an AI customer support platform.
+1. Transcribe the customer's spoken audio verbatim in its original spoken language script (e.g. Japanese, Korean, Hindi, Tamil, Telugu, Spanish, French, German, Arabic, English, etc.).
+2. Reply as a helpful customer support assistant directly in that EXACT SAME language with natural helpfulness. Customer Name: ${name || "Customer"}.
+Return strictly a valid JSON object matching this schema:
+{
+  "text": "Verbatim transcribed spoken text in original script",
+  "reply": "Polite answer in the speaker's original language",
+  "translation": "Accurate English translation of the reply",
+  "language": "Full language name (e.g. Japanese, Korean, Hindi, Spanish)",
+  "lang_code": "BCP-47 language tag (e.g. ja-JP, ko-KR, hi-IN, es-ES)",
+  "detected_language": "2-letter ISO language code (e.g. ja, ko, hi, es)",
+  "intent": "Customer Support Inquiry",
+  "sentiment": "Neutral",
+  "suggestions": ["Follow-up question 1 in that language", "Follow-up question 2 in that language", "Follow-up question 3 in that language"]
+}`;
+
+        const response = await ai.models.generateContent({
+          model,
+          contents: {
+            parts: [audioPart, { text: promptText }],
+          },
+          config: {
+            responseMimeType: "application/json",
+            maxOutputTokens: 400,
+            temperature: 0.6,
+          },
+        });
+
+        const txt = response.text?.trim();
+        if (txt) {
+          const parsed = JSON.parse(txt);
+          if (parsed.text && parsed.reply) {
+            console.log(`Unified audio chat success with ${model}:`, parsed.language, parsed.text);
+            return {
+              reply: sanitizeReply(parsed.reply, parsed.text),
+              translation: parsed.translation || parsed.reply,
+              language: parsed.language || "English",
+              lang_code: parsed.lang_code || "en-US",
+              detected_language: parsed.detected_language || "en",
+              user_query_native: parsed.text.trim(),
+              intent: parsed.intent || "Customer Inquiry",
+              sentiment: parsed.sentiment || "Neutral",
+              suggestions: Array.isArray(parsed.suggestions) ? parsed.suggestions : [],
+              latencyMs: 800,
+              cached: false,
+            };
+          }
+        }
+      } catch (err: any) {
+        console.warn(`Unified audio chat failed on ${model}:`, err.message || err);
+      }
+    }
+  }
+
+  // Fallback: Transcribe first then call chat
+  const transcribedText = await transcribeAudio(base64Data, mimeType);
+  if (transcribedText) {
+    return processChatMessage(transcribedText, name);
+  }
+
+  return null;
+}

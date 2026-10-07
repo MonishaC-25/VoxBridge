@@ -1281,8 +1281,26 @@
   window.addEventListener("vox-transcribing-start", () => {
     micBtn.classList.remove("listening");
     micBtn.querySelector(".mic-btn-text").textContent = "Voice";
-    setVoiceStatusBar(true, "🧠 Understanding speech & detecting language…");
+    setVoiceStatusBar(true, "🧠 Processing voice query…");
     setVisualizerState("listening", "ANALYZING AUDIO...");
+  });
+
+  window.addEventListener("vox-voice-response", (e) => {
+    micBtn.classList.remove("listening");
+    micBtn.querySelector(".mic-btn-text").textContent = "Voice";
+    setVoiceStatusBar(false);
+    setVisualizerState("idle", "VOICE READY");
+    messageInput.placeholder = "Speak or type in any language (Press Enter to send)…";
+
+    const data = e.detail;
+    if (!data || !data.reply) return;
+
+    // 1. Render user query
+    const userMessage = data.user_query_native || "🎙️ Voice Query";
+    appendMessage("user", userMessage);
+
+    // 2. Render AI reply directly
+    renderResponse(data);
   });
 
   window.addEventListener("vox-listen-result", (e) => {
