@@ -2059,6 +2059,9 @@
                     🔄 Reopen
                   </button>`
             }
+            <button type="button" class="ticket-mini-action-btn delete-ticket-btn" style="color:#ef4444;" title="Delete this support ticket">
+              🗑️ Delete
+            </button>
           </div>
         </div>
       `;
@@ -2093,6 +2096,19 @@
           saveTickets();
           renderTicketCards();
           showToast(`Ticket ${ticket.id} reopened.`);
+        };
+      }
+
+      // Delete Ticket
+      const deleteBtn = card.querySelector(".delete-ticket-btn");
+      if (deleteBtn) {
+        deleteBtn.onclick = () => {
+          if (confirm(`Are you sure you want to delete support ticket ${ticket.id}?`)) {
+            supportTickets = supportTickets.filter((t) => t.id !== ticket.id);
+            saveTickets();
+            renderTicketCards();
+            showToast(`Ticket ${ticket.id} deleted successfully.`);
+          }
         };
       }
 
@@ -2165,13 +2181,33 @@
 
   // Ticket Status Filter Pills
   document.querySelectorAll(".status-filter-pill").forEach((pill) => {
+    if (pill.id === "delete-all-tickets-btn") return;
     pill.addEventListener("click", () => {
-      document.querySelectorAll(".status-filter-pill").forEach((p) => p.classList.remove("active"));
+      document.querySelectorAll(".status-filter-pill").forEach((p) => {
+        if (p.id !== "delete-all-tickets-btn") p.classList.remove("active");
+      });
       pill.classList.add("active");
       currentTicketFilter = pill.getAttribute("data-filter") || "all";
       renderTicketCards();
     });
   });
+
+  // Delete All Tickets Action
+  const deleteAllTicketsBtn = document.getElementById("delete-all-tickets-btn");
+  if (deleteAllTicketsBtn) {
+    deleteAllTicketsBtn.addEventListener("click", () => {
+      if (supportTickets.length === 0) {
+        showToast("No support tickets to delete.");
+        return;
+      }
+      if (confirm(`Are you sure you want to permanently delete all ${supportTickets.length} support ticket(s)?`)) {
+        supportTickets = [];
+        saveTickets();
+        renderTicketCards();
+        showToast("All support tickets deleted!");
+      }
+    });
+  }
 
   // Ticket Search
   if (ticketHistorySearch) {
