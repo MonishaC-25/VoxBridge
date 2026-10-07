@@ -48,8 +48,10 @@
 
   // Mapping language short codes to common voice name keywords across OS/browsers
   const LANG_VOICE_NAME_HINTS = {
-    ta: ["tamil", "தமிழ்", "ta-in", "ta_in", "valluvar", "latha", "vani"],
+    ko: ["korean", "한국어", "ko-kr", "ko_kr", "yuna", "sun-hi", "injoon", "seoyeon", "hyhyun"],
+    ja: ["japanese", "日本語", "ja-jp", "kyoko", "otoya", "naoki"],
     te: ["telugu", "తెలుగు", "te-in", "te_in", "mohan", "chitra", "geetha", "shruti"],
+    ta: ["tamil", "தமிழ்", "ta-in", "ta_in", "valluvar", "latha", "vani"],
     ml: ["malayalam", "മലയാളം", "ml-in", "ml_in", "midhun", "ananya", "lekha", "sobana"],
     kn: ["kannada", "ಕನ್ನಡ", "kn-in", "kn_in", "sapna", "gagan"],
     hi: ["hindi", "हिन्दी", "hi-in", "hi_in", "swara", "madhur", "kalpana", "hemant", "veena", "lekha"],
@@ -63,9 +65,8 @@
     es: ["spanish", "español", "castellano", "es-es", "es-mx"],
     fr: ["french", "français", "fr-fr", "fr-ca"],
     de: ["german", "deutsch", "de-de"],
-    ja: ["japanese", "日本語", "ja-jp"],
-    zh: ["chinese", "mandarin", "中文", "zh-cn", "zh-tw"],
-    ar: ["arabic", "العربية", "ar-sa", "ar-ae", "ar-eg"],
+    zh: ["chinese", "mandarin", "中文", "zh-cn", "zh-tw", "tingting"],
+    ar: ["arabic", "العربية", "ar-sa", "ar-ae", "ar-eg", "maged", "tarik"],
     pt: ["portuguese", "português", "pt-br", "pt-pt"],
     ru: ["russian", "русский", "ru-ru"],
     it: ["italian", "italiano", "it-it"],
