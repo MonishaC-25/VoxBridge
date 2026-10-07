@@ -139,25 +139,30 @@
   }
 
   let activeAudioElement = null;
+  let isExplicitlyStopped = false;
 
   /* ================= TEXT TO SPEECH (SYNTHESIS & HYBRID TTS) ================= */
   window.speak = function (text, langCode, onEnd) {
     if (window.autoSpeak === false && !onEnd) return;
 
+    isExplicitlyStopped = false;
     window.stopSpeaking();
+    isExplicitlyStopped = false;
 
     const cleanText = text.replace(/[*_#`~[\]]/g, "").trim();
     if (!cleanText) return;
 
     const targetLang = langCode || (window.voiceLang && window.voiceLang !== "" ? window.voiceLang : "en-US");
     const shortCode = targetLang.split("-")[0].toLowerCase();
-    const genderPref = (window.voiceGender || "female").toLowerCase();
+    
+    // Strictly preserve user gender selection
+    const genderPref = (localStorage.getItem("voxbridge_voice_gender") || window.voiceGender || "female").toLowerCase();
+    window.voiceGender = genderPref;
 
     const voice = getBestVoice(targetLang, genderPref);
 
-    const alwaysUseStreamingTTS = false;
-
-    if (!voice && !synth) {
+    // If browser doesn't have an authentic native voice installed for this language (e.g. Telugu, Malayalam, Tamil, Kannada, Hindi, Korean, Japanese, Arabic, Bengali), use Neural Accented TTS!
+    if (!voice) {
       playStreamingTTS(cleanText, shortCode, onEnd);
       return;
     }
@@ -174,14 +179,14 @@
     }
 
     if (genderPref === "male") {
-      utterance.pitch = 0.8; // Distinct rich male voice tone
+      utterance.pitch = 0.75; // Distinct rich male voice tone
     } else {
       utterance.pitch = 1.15; // Bright female voice tone
     }
 
     let finished = false;
     const finishCallback = () => {
-      if (finished) return;
+      if (finished || isExplicitlyStopped) return;
       finished = true;
       activeUtterance = null;
       window.dispatchEvent(
@@ -192,9 +197,9 @@
         onEnd();
       }
 
-      if (window.handsFree && !isListening) {
+      if (window.handsFree && !isListening && !isExplicitlyStopped) {
         setTimeout(() => {
-          if (window.handsFree && !isListening) {
+          if (window.handsFree && !isListening && !isExplicitlyStopped) {
             window.startVoiceRecognition();
           }
         }, 400);
@@ -202,6 +207,7 @@
     };
 
     utterance.onstart = function () {
+      if (isExplicitlyStopped) return;
       activeUtterance = utterance;
       window.dispatchEvent(
         new CustomEvent("vox-speak-start", { detail: { text: cleanText, langCode: targetLang } })
@@ -211,8 +217,9 @@
     utterance.onend = finishCallback;
 
     utterance.onerror = function (err) {
+      // Do NOT trigger fallback if user explicitly clicked Stop!
+      if (isExplicitlyStopped) return;
       console.warn("Browser speech synthesis error, falling back to neural audio:", err);
-      // Fallback to streaming TTS on error
       playStreamingTTS(cleanText, shortCode, onEnd);
     };
 
@@ -220,9 +227,10 @@
   };
 
   function playStreamingTTS(text, langShortCode, onEnd) {
-    window.stopSpeaking();
+    if (isExplicitlyStopped) return;
 
-    const ttsUrl = `/api/tts?text=${encodeURIComponent(text.substring(0, 300))}&lang=${encodeURIComponent(langShortCode)}&gender=${encodeURIComponent(window.voiceGender || 'female')}`;
+    const genderPref = (localStorage.getItem("voxbridge_voice_gender") || window.voiceGender || "female").toLowerCase();
+    const ttsUrl = `/api/tts?text=${encodeURIComponent(text.substring(0, 300))}&lang=${encodeURIComponent(langShortCode)}&gender=${encodeURIComponent(genderPref)}`;
     const audio = new Audio(ttsUrl);
     activeAudioElement = audio;
 
@@ -230,7 +238,7 @@
 
     let finished = false;
     const finishAudio = () => {
-      if (finished) return;
+      if (finished || isExplicitlyStopped) return;
       finished = true;
       if (activeAudioElement === audio) {
         activeAudioElement = null;
@@ -243,9 +251,9 @@
         onEnd();
       }
 
-      if (window.handsFree && !isListening) {
+      if (window.handsFree && !isListening && !isExplicitlyStopped) {
         setTimeout(() => {
-          if (window.handsFree && !isListening) {
+          if (window.handsFree && !isListening && !isExplicitlyStopped) {
             window.startVoiceRecognition();
           }
         }, 400);
@@ -253,6 +261,10 @@
     };
 
     audio.onplay = function () {
+      if (isExplicitlyStopped) {
+        try { audio.pause(); } catch(e){}
+        return;
+      }
       window.dispatchEvent(
         new CustomEvent("vox-speak-start", { detail: { text, langCode: langShortCode } })
       );
@@ -260,6 +272,7 @@
 
     audio.onended = finishAudio;
     audio.onerror = function (e) {
+      if (isExplicitlyStopped) return;
       console.warn("TTS audio streaming playback error:", e);
       finishAudio();
     };
@@ -267,13 +280,17 @@
     const playPromise = audio.play();
     if (playPromise !== undefined) {
       playPromise.catch((err) => {
-        console.warn("Audio autoplay blocked or error:", err);
-        finishAudio();
+        if (!isExplicitlyStopped) {
+          console.warn("Audio autoplay blocked or error:", err);
+          finishAudio();
+        }
       });
     }
   }
 
   window.stopSpeaking = function () {
+    isExplicitlyStopped = true;
+
     if (activeAudioElement) {
       try {
         activeAudioElement.pause();
@@ -283,7 +300,9 @@
     }
 
     if (synth && (synth.speaking || synth.pending)) {
-      synth.cancel();
+      try {
+        synth.cancel();
+      } catch(e) {}
       activeUtterance = null;
     }
 
