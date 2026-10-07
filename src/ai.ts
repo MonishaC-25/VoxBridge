@@ -209,11 +209,11 @@ export function detectLanguageHeuristic(text: string): {
     return LANGUAGE_REGISTRY.bn;
   }
   // Marathi transliterated
-  if (/\b(namaskar|kase\s+aahat|dhanyavad|marathi|madat|pahije|ahe)\b/.test(lower)) {
+  if (/\b(namaskar|kase\s+aahat|dhanyavad|marathi|madat|pahije|ahe|kai|kay|geli|gayi|maska|kashi|ahes|kasa)\b/.test(lower)) {
     return LANGUAGE_REGISTRY.mr;
   }
   // Gujarati transliterated
-  if (/\b(kem\s+cho|aabhar|gujarati|madad|joie)\b/.test(lower)) {
+  if (/\b(kem\s+cho|aabhar|gujarati|madad|joie|kyan|gai)\b/.test(lower)) {
     return LANGUAGE_REGISTRY.gu;
   }
   // Punjabi transliterated
@@ -221,32 +221,32 @@ export function detectLanguageHeuristic(text: string): {
     return LANGUAGE_REGISTRY.pa;
   }
   // Hindi transliterated (Hinglish)
-  if (/\b(namaste|kaise\s+ho|kaise|hai|kya|mujhe|aap|accha|shukriya|theek|dhanyawad|madad|kripya|hindi)\b/.test(lower)) {
+  if (/\b(namaste|kaise\s+ho|kaise|hai|kya|mujhe|aap|accha|shukriya|theek|dhanyawad|madad|kripya|hindi|aapki|kahan)\b/.test(lower)) {
     return LANGUAGE_REGISTRY.hi;
   }
+  // Turkish
+  if (/\b(merhaba|teşekkürler|lütfen|nasılsınız|evet|hayır|yardım|fiyat|fiyatlar|sipariş|takip|destek|saatleri|ücret|müşteri|hizmetleri|çalışma|saatleriniz|nedir|nasıl)\b/.test(lower) || /[ğış]/.test(lower)) {
+    return LANGUAGE_REGISTRY.tr;
+  }
+  // Portuguese
+  if (/\b(olá|obrigado|obrigada|por favor|como|está|bom|dia|ajuda|quanto|custa|preço|preços|pedido|rastreio|serviço|suporte|empresa|planos|falar|atendente|quais|são|horários|atendimento|vocês)\b/.test(lower) || /[ãõáéíóúâêôç]/.test(lower)) {
+    return LANGUAGE_REGISTRY.pt;
+  }
   // French
-  if (/\b(bonjour|merci|comment|salut|s'il vous plaît|oui|non|au revoir|pourquoi|avec|quels|sont|vos|tarifs|entreprises|forfaits|service|horaires|suivi|commande|combien|votre|notre|nous|vous|pour|dans|aide|prix|parler)\b/.test(lower) || /[çœæéèêëàâùûîïô]/.test(lower)) {
+  if (/\b(bonjour|merci|comment|salut|s'il vous plaît|oui|non|au revoir|pourquoi|avec|quels|sont|vos|tarifs|entreprises|forfaits|service|horaires|suivi|commande|combien|votre|notre|nous|vous|pour|dans|aide|prix|parler)\b/.test(lower) || /[œæèêëàâùûîïô]/.test(lower)) {
     return LANGUAGE_REGISTRY.fr;
   }
   // Spanish
-  if (/\b(hola|gracias|por favor|cómo|estás|buenos|días|buenas|noches|ayuda|dónde|cuánto|tarifa|precios|pedido|seguimiento|servicio|cliente|empresa|puedo|cuáles|planes|hablar|asesor)\b/.test(lower) || /[¿¡ñáéíóúü]/.test(lower)) {
+  if (/\b(hola|gracias|por favor|cómo|estás|buenos|días|buenas|noches|ayuda|dónde|cuánto|tarifa|precios|pedido|seguimiento|servicio|cliente|empresa|puedo|cuáles|planes|hablar|asesor|horarios)\b/.test(lower) || /[¿¡ñáéíóúü]/.test(lower)) {
     return LANGUAGE_REGISTRY.es;
   }
   // German
-  if (/\b(hallo|guten|tag|morgen|danke|bitte|wie|geht's|tschüss|hilfe|warum|bieten|kostenlose|testversion|preise|tarife|anfrage|unternehmen|kunde|bestellung|lieferung|wann|öffnungszeiten|zeiten)\b/.test(lower) || /[äöüß]/.test(lower)) {
+  if (/\b(hallo|guten|tag|morgen|danke|bitte|wie|geht's|tschüss|hilfe|warum|bieten|kostenlose|testversion|preise|tarife|anfrage|unternehmen|kunde|bestellung|lieferung|wann|öffnungszeiten|zeiten|kundenservice)\b/.test(lower) || /[äöüß]/.test(lower)) {
     return LANGUAGE_REGISTRY.de;
   }
   // Italian
-  if (/\b(ciao|grazie|per favore|come|stai|buongiorno|buonasera|aiuto|quanto|costa|prezzo|prezzi|ordine|spedizione|servizio|assistenza|azienda|orari|parla|operatore)\b/.test(lower)) {
+  if (/\b(ciao|grazie|per favore|come|stai|buongiorno|buonasera|aiuto|quanto|costa|prezzo|prezzi|ordine|spedizione|servizio|assistenza|azienda|orari|parla|operatore|vostri|quali)\b/.test(lower)) {
     return LANGUAGE_REGISTRY.it;
-  }
-  // Portuguese
-  if (/\b(olá|obrigado|obrigada|por favor|como|está|bom|dia|ajuda|quanto|custa|preço|preços|pedido|rastreio|serviço|suporte|empresa|planos|falar|atendente)\b/.test(lower) || /[ãõáéíóúâêôç]/.test(lower)) {
-    return LANGUAGE_REGISTRY.pt;
-  }
-  // Turkish
-  if (/\b(merhaba|teşekkürler|lütfen|nasılsınız|evet|hayır|yardım|fiyat|fiyatlar|sipariş|takip|destek|saatleri|ücret)\b/.test(lower) || /[ğışçöü]/.test(lower)) {
-    return LANGUAGE_REGISTRY.tr;
   }
   // Vietnamese
   if (/[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/.test(lower)) {
@@ -390,12 +390,12 @@ Return strictly a JSON object with this schema:
           contents: prompt,
           config: {
             responseMimeType: "application/json",
-            maxOutputTokens: 800,
-            temperature: 0.65,
+            maxOutputTokens: 450,
+            temperature: 0.6,
           },
         }),
         new Promise<any>((_, reject) =>
-          setTimeout(() => reject(new Error(`Timeout with ${modelName}`)), 4000)
+          setTimeout(() => reject(new Error(`Timeout with ${modelName}`)), 3000)
         ),
       ]);
 

@@ -401,8 +401,8 @@
               } else if (hasSpokenAudio) {
                 if (!silenceStartTime) {
                   silenceStartTime = Date.now();
-                } else if (Date.now() - silenceStartTime > 3200) {
-                  // User finished speaking! Auto-stop after 3.2 seconds of natural silence
+                } else if (Date.now() - silenceStartTime > 1100) {
+                  // User finished speaking! Auto-stop quickly after 1.1s of silence
                   clearInterval(silenceCheckInterval);
                   silenceCheckInterval = null;
                   stopMediaRecorder();
@@ -558,7 +558,7 @@
         })
       );
 
-      // Give user natural breathing/thinking room: 3.0s of silence before auto-stopping
+      // Fast responsiveness: 1.1s of silence before auto-submitting
       if (speechSilenceTimeout) clearTimeout(speechSilenceTimeout);
       if (liveText) {
         speechSilenceTimeout = setTimeout(() => {
@@ -567,7 +567,7 @@
               recognition.stop();
             } catch (e) {}
           }
-        }, 3000);
+        }, 1100);
       }
     };
 
@@ -576,7 +576,7 @@
       if (speechSilenceTimeout) clearTimeout(speechSilenceTimeout);
       isListening = false;
       if (event.error === "no-speech") {
-        window.dispatchEvent(new CustomEvent("vox-listen-end"));
+        window.dispatchEvent(new CustomEvent("vox-listen-end", { detail: { text: "" } }));
         return;
       }
       if (event.error === "not-allowed" || event.error === "service-not-allowed") {
@@ -603,19 +603,21 @@
     if (isListening || isRecording) return;
     window.stopSpeaking();
 
-    // If a specific language is explicitly set, use native speech recognition with that exact code
-    if (recognition && window.voiceLang && window.voiceLang.trim() !== "") {
+    // 1. Primary High-Speed Engine: Native Browser SpeechRecognition (Zero-Latency Streaming)
+    if (recognition) {
       try {
-        recognition.lang = window.voiceLang.trim();
+        const preferred = (window.voiceLang && window.voiceLang.trim() !== "")
+          ? window.voiceLang.trim()
+          : (navigator.language || "en-US");
+        recognition.lang = preferred;
         recognition.start();
         return;
       } catch (err) {
-        console.warn("Explicit speech recognition failed, falling back to MediaRecorder:", err);
+        console.warn("Speech recognition fallback to MediaRecorder:", err);
       }
     }
 
-    // Default & Universal: Studio MediaRecorder + Gemini Neural Multilingual Acoustic Transcriber
-    // This transcribes speech in its authentic native script without Romanized garble!
+    // 2. Fallback: Studio MediaRecorder
     startMediaRecorder();
   };
 
