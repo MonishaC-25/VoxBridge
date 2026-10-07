@@ -839,49 +839,6 @@
     textP.textContent = msg.text;
     card.appendChild(textP);
 
-    // Automatic English Translation Box for non-English Bot Responses
-    if (
-      msg.who === "bot" &&
-      msg.translation &&
-      msg.translation.trim() &&
-      msg.translation !== msg.text &&
-      msg.detected_language !== "en" &&
-      window.showTranslations !== false
-    ) {
-      const autoTransBox = document.createElement("div");
-      autoTransBox.className = "custom-translation-box default-trans-box";
-      autoTransBox.innerHTML = `
-        <div class="translation-header-row">
-          <span class="trans-tag">🇺🇸 English Translation</span>
-          <div class="trans-controls">
-            <button type="button" class="studio-deck-btn auto-listen-btn">▶ Listen</button>
-            <button type="button" class="studio-deck-btn auto-copy-btn">Copy</button>
-          </div>
-        </div>
-        <div class="trans-body">${escapeHtml(msg.translation)}</div>
-      `;
-
-      const autoListen = autoTransBox.querySelector(".auto-listen-btn");
-      if (autoListen) {
-        autoListen.onclick = () => {
-          handleVoicePlay(autoListen, msg.translation, "en-US");
-        };
-      }
-
-      const autoCopy = autoTransBox.querySelector(".auto-copy-btn");
-      if (autoCopy) {
-        autoCopy.onclick = () => {
-          navigator.clipboard.writeText(msg.translation).then(() => {
-            autoCopy.textContent = "✓ Copied";
-            showToast("English translation copied");
-            setTimeout(() => (autoCopy.textContent = "Copy"), 1800);
-          });
-        };
-      }
-
-      card.appendChild(autoTransBox);
-    }
-
     // Message actions bar: Listen, Copy, Translate to ANY language for both bot and user messages
     const audioDeck = document.createElement("div");
     audioDeck.className = "audio-deck-bar";

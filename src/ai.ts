@@ -45,7 +45,7 @@ function getAiClient(): GoogleGenAI | null {
   return null;
 }
 
-const GEMINI_MODELS = ["gemini-3.8-flash", "gemini-flash-latest"];
+const GEMINI_MODELS = ["gemini-3.5-flash-lite", "gemini-3.8-flash", "gemini-3.8-pro"];
 const GROQ_MODEL = "llama-3.3-70b-versatile";
 
 export interface AIResponseResult {
@@ -338,93 +338,88 @@ async function tryGemini(
   const activeTarget = targetLangHint || contextLang || "";
   const activeLangObj = activeTarget ? (LANGUAGE_REGISTRY[activeTarget.split("-")[0].toLowerCase()] || null) : null;
 
-  const prompt = `You are VoxBridge, an advanced, highly intelligent conversational AI customer support assistant modeled after ChatGPT. You converse fluently, naturally, and helpfully with customers in ANY language on Earth.
+  const prompt = `You are VoxBridge, an ultra-capable, universally knowledgeable, and friendly AI assistant powered by Gemini (modeled after ChatGPT). You can answer ANY question across all domains — science, coding, mathematics, business, support, explanations, creative writing, history, languages, everyday advice, and general conversation — with flawless depth, clarity, and intelligence.
 
 Customer Name: "${customerName || "Customer"}"
 Customer Message: "${text}"
 
 CORE SYSTEM DIRECTIVE — "ANY LANGUAGE IN. SAME LANGUAGE OUT":
-1. LANGUAGE IDENTIFICATION & MATCHING (ABSOLUTE HIGHEST PRIORITY):
-   - Analyze the Customer Message: "${text}".
-   - Detect what language the customer is actually using in this message right now.
+1. LANGUAGE MATCHING (HIGHEST PRIORITY):
+   - Identify the language of the Customer Message: "${text}".
    - You MUST reply 100% in that EXACT SAME language!
-   - If the customer writes in English -> You MUST reply in English.
-   - If the customer writes in Hindi -> You MUST reply in Hindi.
-   - If the customer writes in Tamil -> You MUST reply in Tamil.
-   - If the customer writes in Spanish -> You MUST reply in Spanish.
-   - If the customer writes in French -> You MUST reply in French.
-   - If the customer writes in German, Japanese, Korean, Arabic, Telugu, Kannada, or ANY other language -> You MUST reply in that exact same language.
-   - NEVER reply in Hindi if the customer is typing or speaking in English or another language!
-   - NEVER force an old session language on the customer if their current message is in a different language.
+   - If the customer writes in English -> Reply in English.
+   - If the customer writes in Hindi -> Reply in Hindi.
+   - If the customer writes in Tamil -> Reply in Tamil.
+   - If the customer writes in Spanish -> Reply in Spanish.
+   - If the customer writes in French -> Reply in French.
+   - If the customer writes in German, Japanese, Korean, Arabic, Telugu, Kannada, Russian, Italian, or ANY other language -> Reply in that exact same language.
+   - NEVER switch to a different language or force Hindi/English on the user unless they asked in that language.
 
-BUSINESS KNOWLEDGE & CONTEXT:
-1. SUPPORT HOURS: Live support is available 24/7/365.
-2. PRICING & PLANS: Flexible monthly/yearly plans starting at $29/month, including a 14-day free trial with full access.
-3. SERVICES & FEATURES: Multilingual real-time voice and text translation, conversational APIs, and seamless widgets.
-4. SERVICE TRACKING: Customers can track ticket or integration progress in real-time using their transaction or customer ID.
-5. BILLING & PAYMENTS: If a customer reports a duplicate payment/charge or requests a refund (e.g. "결제가 두 번 처리된 것 같습니다"), acknowledge the issue with high empathy, reassure them that duplicate charges are flagged and automatically refunded within 3-5 business days, and offer to look up their transaction ID immediately.
-6. LIVE HUMAN AGENT: Customers can connect to a live agent anytime.
-
-CRITICAL RULES:
-1. DYNAMIC CONVERSATIONAL SUPPORT:
-   - DIRECTLY ADDRESS SPECIFIC INQUIRIES: If the customer asks a specific question (e.g. about double charges, refund, pricing, hours, or tracking), immediately address that question with details.
-   - Answer their specific question directly and helpfully.
-   - Reply 100% in the customer's exact language.
-2. ACCURATE SPEECH CODE: Output the exact BCP-47 speech code of your reply language (e.g. 'en-US', 'hi-IN', 'ta-IN', 'es-ES', 'fr-FR', 'de-DE', 'zh-CN', 'ja-JP', 'ko-KR', 'ar-SA', etc.).
-3. ENGLISH TRANSLATION: Provide an accurate, high-quality English translation of your reply for business logs.
-4. NATIVE FOLLOW-UP SUGGESTIONS: Provide exactly 3 short, relevant, highly customized follow-up suggestion chips in that EXACT SAME language.
+INTELLIGENCE & KNOWLEDGE GUIDELINES:
+1. CHATGPT-GRADE COMPREHENSIVE REPLIES:
+   - Answer the user's question completely, accurately, helpfully, and articulately.
+   - If the user asks a general knowledge, science, coding, technical, math, or explanation question, provide a clear, insightful, well-structured answer.
+   - If the user asks about business support (hours, pricing, refunds, tracking), provide prompt, helpful customer support details (24/7 live support, $29/mo plans with 14-day free trial, automatic refund processing for duplicate charges within 3-5 days).
+2. CONVERSATIONAL EXCELLENCE:
+   - Address the customer naturally and politely.
+   - Provide a natural conversational response in their native language.
+3. ACCURATE SPEECH CODE: Output the exact BCP-47 speech code of your reply language (e.g. 'en-US', 'hi-IN', 'ta-IN', 'es-ES', 'fr-FR', 'de-DE', 'zh-CN', 'ja-JP', 'ko-KR', 'ar-SA', etc.).
+4. ENGLISH TRANSLATION: Provide an accurate English translation of your reply for business logs.
+5. NATIVE FOLLOW-UP SUGGESTIONS: Provide exactly 3 short, smart follow-up suggestions in that EXACT SAME language.
 
 Return strictly a JSON object with this schema:
 {
-  "language": "Full English name of language (e.g. Spanish, French, German, Japanese, Chinese, Arabic, Russian, English, Korean, Tamil)",
-  "lang_code": "Standard BCP-47 speech code (e.g. es-ES, fr-FR, de-DE, zh-CN, ja-JP, ko-KR, ar-SA, en-US, ta-IN)",
-  "detected_language": "Two-letter ISO 639-1 code (e.g. es, fr, de, zh, ja, ko, ar, en, ta)",
+  "language": "Full English name of language (e.g. Spanish, French, German, Japanese, Chinese, Arabic, Russian, English, Korean, Tamil, Hindi)",
+  "lang_code": "Standard BCP-47 speech code (e.g. es-ES, fr-FR, de-DE, zh-CN, ja-JP, ko-KR, ar-SA, en-US, ta-IN, hi-IN)",
+  "detected_language": "Two-letter ISO 639-1 code (e.g. es, fr, de, zh, ja, ko, ar, en, ta, hi)",
   "reply": "Direct, conversational, natural, and comprehensive ChatGPT-style answer in the customer's language",
   "translation": "Accurate English translation",
-  "intent": "Brief category (e.g. Billing & Payment, Pricing Inquiry, Support Hours, Order Tracking, Customer Support)",
+  "intent": "Brief category (e.g. General Knowledge, Technical Inquiry, Support Hours, Pricing, Order Tracking, Billing, Conversation)",
   "sentiment": "Positive, Neutral, or Inquiring",
   "suggestions": ["Follow-up question 1 in that language", "Follow-up question 2 in that language", "Follow-up question 3 in that language"]
 }`;
 
-  try {
-    const response = await Promise.race([
-      ai.models.generateContent({
-        model: "gemini-3.8-flash",
-        contents: prompt,
-        config: {
-          responseMimeType: "application/json",
-          maxOutputTokens: 300,
-          temperature: 0.6,
-        },
-      }),
-      new Promise<any>((_, reject) =>
-        setTimeout(() => reject(new Error("Timeout with gemini-3.8-flash")), 1500)
-      ),
-    ]);
+  for (const modelName of GEMINI_MODELS) {
+    try {
+      const response = await Promise.race([
+        ai.models.generateContent({
+          model: modelName,
+          contents: prompt,
+          config: {
+            responseMimeType: "application/json",
+            maxOutputTokens: 800,
+            temperature: 0.65,
+          },
+        }),
+        new Promise<any>((_, reject) =>
+          setTimeout(() => reject(new Error(`Timeout with ${modelName}`)), 4000)
+        ),
+      ]);
 
-    const outputText = response.text?.trim();
-    if (outputText) {
-      const parsed = JSON.parse(outputText);
-      if (parsed.reply && parsed.language) {
-        const reg = LANGUAGE_REGISTRY[parsed.detected_language];
-        const detectedCode = parsed.detected_language || (reg ? reg.shortCode : "en");
-        const englishTrans = (parsed.translation || "").trim();
+      const outputText = response.text?.trim();
+      if (outputText) {
+        const parsed = JSON.parse(outputText);
+        if (parsed.reply && parsed.language) {
+          const reg = LANGUAGE_REGISTRY[parsed.detected_language];
+          const detectedCode = parsed.detected_language || (reg ? reg.shortCode : "en");
+          const englishTrans = (parsed.translation || "").trim();
 
-        return {
-          reply: parsed.reply,
-          translation: englishTrans || parsed.reply,
-          language: parsed.language,
-          lang_code: parsed.lang_code || (reg ? reg.code : "en-US"),
-          detected_language: detectedCode,
-          intent: parsed.intent || "Customer Support",
-          sentiment: parsed.sentiment || "Neutral",
-          suggestions: Array.isArray(parsed.suggestions) ? parsed.suggestions : [],
-        };
+          return {
+            reply: parsed.reply,
+            translation: englishTrans || parsed.reply,
+            language: parsed.language,
+            lang_code: parsed.lang_code || (reg ? reg.code : "en-US"),
+            detected_language: detectedCode,
+            intent: parsed.intent || "General Knowledge",
+            sentiment: parsed.sentiment || "Neutral",
+            suggestions: Array.isArray(parsed.suggestions) ? parsed.suggestions : [],
+          };
+        }
       }
+    } catch (err: any) {
+      const msg = err?.message || String(err);
+      console.warn(`Gemini model ${modelName} attempt finished:`, msg);
     }
-  } catch (err: any) {
-    const msg = err?.message || String(err);
-    console.warn("Gemini attempt finished:", msg);
   }
 
   return null;
