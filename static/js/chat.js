@@ -46,7 +46,6 @@
   const starterView = document.getElementById("starter-view");
   const voiceStatusBar = document.getElementById("voice-status-bar");
   const voiceStatusText = document.getElementById("voice-status-text");
-  const stopVoiceBtn = document.getElementById("stop-voice-btn");
 
   const chatForm = document.getElementById("chat-form");
   const messageInput = document.getElementById("message-input");
@@ -1317,10 +1316,11 @@
       messageInput.value = interim;
       charCount.textContent = `${interim.length} / 1000`;
     }
-    if (final) {
-      messageInput.value = final;
-      charCount.textContent = `${final.length} / 1000`;
-      sendQuery(final);
+    if (final && final.trim()) {
+      messageInput.value = final.trim();
+      charCount.textContent = `${final.trim().length} / 1000`;
+      window.stopVoiceRecognition();
+      sendQuery(final.trim());
     }
   });
 
@@ -1469,15 +1469,6 @@
   if (micBtn) {
     micBtn.addEventListener("click", () => {
       window.toggleVoiceRecognition();
-    });
-  }
-
-  if (stopVoiceBtn) {
-    stopVoiceBtn.addEventListener("click", () => {
-      window.stopSpeaking();
-      window.stopVoiceRecognition();
-      setVoiceStatusBar(false);
-      setVisualizerState("idle", "VOICE READY");
     });
   }
 

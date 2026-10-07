@@ -303,22 +303,39 @@
     return isSynthSpeaking || isAudioPlaying;
   };
 
-  /* ================= SPEECH TO TEXT (RECOGNITION WITH GEMINI FALLBACK) ================= */
+  /* ================= SPEECH TO TEXT (RECOGNITION WITH FALLBACK) ================= */
   let mediaRecorder = null;
   let audioChunks = [];
   let isRecording = false;
+  let silenceCheckInterval = null;
+  let maxRecordTimeout = null;
+  let audioContext = null;
+  let analyser = null;
+
+  function cleanupRecordingResources(stream) {
+    if (silenceCheckInterval) {
+      clearInterval(silenceCheckInterval);
+      silenceCheckInterval = null;
+    }
+    if (maxRecordTimeout) {
+      clearTimeout(maxRecordTimeout);
+      maxRecordTimeout = null;
+    }
+    if (audioContext) {
+      try { audioContext.close(); } catch (e) {}
+      audioContext = null;
+    }
+    analyser = null;
+    if (stream) {
+      stream.getTracks().forEach((track) => track.stop());
+    }
+  }
 
   function startMediaRecorder() {
     if (isRecording) return;
     window.stopSpeaking();
 
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      if (recognition) {
-        try {
-          recognition.start();
-          return;
-        } catch (e) {}
-      }
       isRecording = false;
       isListening = false;
       window.dispatchEvent(
@@ -327,7 +344,7 @@
       return;
     }
 
-    // Use enhanced audio constraints for studio voice clarity
+    // Enhanced audio constraints for studio voice clarity
     const audioConstraints = {
       echoCancellation: true,
       noiseSuppression: true,
@@ -358,7 +375,50 @@
         isListening = true;
 
         window.dispatchEvent(new CustomEvent("vox-listen-start"));
-        if (window.showToast) window.showToast("🎙️ Microphone active... speak now!");
+
+        // Setup live audio silence detection via Web Audio API
+        let hasSpokenAudio = false;
+        let silenceStartTime = 0;
+        try {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) {
+            audioContext = new AudioCtx();
+            const source = audioContext.createMediaStreamSource(stream);
+            analyser = audioContext.createAnalyser();
+            analyser.fftSize = 256;
+            source.connect(analyser);
+            const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+            silenceCheckInterval = setInterval(() => {
+              if (!isRecording || !analyser) return;
+              analyser.getByteFrequencyData(dataArray);
+              let sum = 0;
+              for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+              const avg = sum / dataArray.length;
+
+              if (avg > 14) {
+                hasSpokenAudio = true;
+                silenceStartTime = 0;
+              } else if (hasSpokenAudio) {
+                if (!silenceStartTime) {
+                  silenceStartTime = Date.now();
+                } else if (Date.now() - silenceStartTime > 1300) {
+                  // User finished speaking! Auto-stop and submit
+                  clearInterval(silenceCheckInterval);
+                  silenceCheckInterval = null;
+                  stopMediaRecorder();
+                }
+              }
+            }, 100);
+          }
+        } catch (e) {}
+
+        // Safety timeout: automatically stop after 6 seconds so it never hangs
+        maxRecordTimeout = setTimeout(() => {
+          if (isRecording) {
+            stopMediaRecorder();
+          }
+        }, 6000);
 
         mediaRecorder.ondataavailable = (event) => {
           if (event.data && event.data.size > 0) {
@@ -369,27 +429,22 @@
         mediaRecorder.onstop = () => {
           isRecording = false;
           isListening = false;
+          cleanupRecordingResources(stream);
           window.dispatchEvent(new CustomEvent("vox-listen-end"));
-          if (window.showToast) window.showToast("🔄 Processing your voice...");
 
           const mime = mediaRecorder.mimeType || selectedMime || "audio/webm";
           const audioBlob = new Blob(audioChunks, { type: mime });
-          stream.getTracks().forEach((track) => track.stop()); // Release mic hardware
 
           if (audioBlob.size < 200) {
-            if (window.showToast) window.showToast("⚠️ Audio too short or mic muted. Please speak clearly!");
             return;
           }
 
-          // Convert to base64 and send to our Gemini Transcription endpoint
+          // Convert to base64 and send to transcription endpoint
           const reader = new FileReader();
           reader.readAsDataURL(audioBlob);
           reader.onloadend = () => {
             const base64 = reader.result.split(",")[1];
             
-            // Show transcribing status
-            window.dispatchEvent(new CustomEvent("vox-speak-start", { detail: { langCode: "AI Transcribing" } }));
-
             fetch("/api/transcribe", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -400,41 +455,25 @@
               return res.json();
             })
             .then((data) => {
-              window.dispatchEvent(new CustomEvent("vox-speak-stop")); // Clear transcribing banner
               if (data.text && data.text.trim()) {
-                if (window.showToast) window.showToast("✨ Speech captured successfully!");
                 window.dispatchEvent(new CustomEvent("vox-listen-result", {
                   detail: { interim: "", final: data.text.trim() }
                 }));
-              } else {
-                if (window.showToast) window.showToast("⚠️ Could not hear you clearly. Please try again!");
               }
             })
             .catch((err) => {
-              window.dispatchEvent(new CustomEvent("vox-speak-stop"));
-              console.warn("Transcription failed or timed out:", err);
-              if (window.showToast) window.showToast("❌ Transcription failed. Please speak clearly and try again.");
+              console.warn("Audio transcription error:", err);
             });
           };
         };
 
-        // Start recording with 250ms chunks to capture short phrases immediately
+        // Start recording with 250ms chunks
         mediaRecorder.start(250);
       })
       .catch((err) => {
         isRecording = false;
         isListening = false;
-
-        // Turn off handsFree if permission is denied to prevent repeated prompt loops
-        if (window.handsFree) {
-          window.handsFree = false;
-          const quickHandsfreeToggle = document.getElementById("quick-handsfree-toggle");
-          if (quickHandsfreeToggle) quickHandsfreeToggle.classList.remove("active");
-          const handsFreeDot = document.getElementById("handsfree-dot");
-          if (handsFreeDot) handsFreeDot.classList.remove("active");
-          const handsFreeLabel = document.getElementById("handsfree-label");
-          if (handsFreeLabel) handsFreeLabel.textContent = "Standby";
-        }
+        cleanupRecordingResources(null);
 
         const isPermissionDenied =
           err.name === "NotAllowedError" ||
@@ -445,7 +484,7 @@
         if (isPermissionDenied) {
           window.dispatchEvent(
             new CustomEvent("vox-listen-error", {
-              detail: { error: "permission-denied", message: "Microphone permission is blocked. Click the 🔒 lock icon in your address bar to Allow Microphone." }
+              detail: { error: "permission-denied", message: "Microphone blocked. Click the lock icon in the address bar to Allow Microphone." }
             })
           );
         } else {
@@ -459,6 +498,14 @@
   }
 
   function stopMediaRecorder() {
+    if (silenceCheckInterval) {
+      clearInterval(silenceCheckInterval);
+      silenceCheckInterval = null;
+    }
+    if (maxRecordTimeout) {
+      clearTimeout(maxRecordTimeout);
+      maxRecordTimeout = null;
+    }
     if (mediaRecorder && mediaRecorder.state !== "inactive") {
       try {
         if (typeof mediaRecorder.requestData === "function") {
@@ -504,17 +551,20 @@
     };
 
     recognition.onerror = function (event) {
-      console.warn("Speech recognition error, falling back to Gemini MediaRecorder:", event.error);
+      console.warn("Speech recognition error:", event.error);
       isListening = false;
-
-      // Automatically fallback to MediaRecorder if standard recognition is blocked/not allowed
-      if (event.error === "not-allowed" || event.error === "service-not-allowed" || event.error === "network") {
-        startMediaRecorder();
-      } else {
-        window.dispatchEvent(
-          new CustomEvent("vox-listen-error", { detail: { error: event.error } })
-        );
+      if (event.error === "no-speech") {
+        window.dispatchEvent(new CustomEvent("vox-listen-end"));
+        return;
       }
+      if (event.error === "not-allowed" || event.error === "service-not-allowed") {
+        window.dispatchEvent(
+          new CustomEvent("vox-listen-error", { detail: { error: event.error, message: "Microphone blocked. Click the lock icon in address bar to allow mic." } })
+        );
+        return;
+      }
+      // Fallback to MediaRecorder on other errors
+      startMediaRecorder();
     };
 
     recognition.onend = function () {
@@ -529,12 +579,33 @@
     if (isListening || isRecording) return;
     window.stopSpeaking();
 
-    // Always use high-fidelity server-side Gemini audio transcription for perfect multilingual auto-detection
-    console.log("Launching high-fidelity Gemini audio transcription engine...");
+    // 1. Primary: Native Browser SpeechRecognition (works natively in Chrome/Edge, zero latency, auto-detects end of speech!)
+    if (recognition) {
+      try {
+        const targetLang = (window.voiceLang && window.voiceLang.trim() !== "")
+          ? window.voiceLang.trim()
+          : (navigator.language || "en-US");
+        recognition.lang = targetLang;
+        recognition.start();
+        return;
+      } catch (err) {
+        console.warn("Native speech recognition failed to start, using MediaRecorder fallback:", err);
+      }
+    }
+
+    // 2. Fallback: Studio MediaRecorder with automatic silence detection
     startMediaRecorder();
   };
 
   window.stopVoiceRecognition = function () {
+    if (silenceCheckInterval) {
+      clearInterval(silenceCheckInterval);
+      silenceCheckInterval = null;
+    }
+    if (maxRecordTimeout) {
+      clearTimeout(maxRecordTimeout);
+      maxRecordTimeout = null;
+    }
     if (isRecording) {
       stopMediaRecorder();
     }
