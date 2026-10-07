@@ -1673,11 +1673,10 @@
     });
   }
 
-  /* ================= EXPORT TRANSCRIPTS (TXT & PDF) ================= */
+  /* ================= EXPORT TRANSCRIPTS (TXT) ================= */
   const exportModal = document.getElementById("export-modal");
   const exportModalClose = document.getElementById("export-modal-close");
   const exportFormatTxt = document.getElementById("export-format-txt");
-  const exportFormatPdf = document.getElementById("export-format-pdf");
 
   function openExportModal() {
     if (exportModal) {
@@ -1732,20 +1731,6 @@
         txt += "\n";
       });
       downloadFile(`voxbridge-${conv.id || "chat"}.txt`, txt, "text/plain");
-    });
-  }
-
-  if (exportFormatPdf) {
-    exportFormatPdf.addEventListener("click", () => {
-      const conv = getActiveConversation();
-      if (!conv || !conv.messages.length) {
-        showToast("No messages to print or save as PDF");
-        return;
-      }
-      closeExportModal();
-      setTimeout(() => {
-        window.print();
-      }, 200);
     });
   }
 

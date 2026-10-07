@@ -167,9 +167,6 @@
               <span id="theme-icon">🌓</span>
               <span id="theme-text">Theme</span>
             </button>
-            <a href="/api/download-documentation-pdf" download="VoxBridge_System_Architecture_and_Modules.pdf" id="download-pdf-sidebar-btn" class="sidebar-mini-btn" title="Download System Specification PDF" style="text-decoration:none; display:inline-flex; align-items:center; justify-content:center;">
-              📄 <span>PDF Spec</span>
-            </a>
             <button id="export-all-btn" class="sidebar-mini-btn" type="button" title="Export all chat logs">
               📥 <span>Export</span>
             </button>
@@ -474,9 +471,6 @@
             <button class="care-quick-chip ticket-trigger-btn" type="button" id="dock-ticket-btn">
               🎫 Open Support Ticket
             </button>
-            <a href="/api/download-documentation-pdf" download="VoxBridge_System_Architecture_and_Modules.pdf" class="care-quick-chip pdf-download-chip" style="text-decoration:none; display:inline-flex; align-items:center; background: rgba(37, 99, 235, 0.15); border-color: rgba(37, 99, 235, 0.4); color: var(--color-primary-600); font-weight:600;" title="Download Complete Project Modules & Stack PDF Document">
-              📄 Download Project PDF
-            </a>
           </div>
         </div>
 
@@ -760,18 +754,11 @@
         <h3>Save Conversation Transcript</h3>
         <p>Save or print a copy of your chat session for your personal records or support reference.</p>
         <div class="export-options-grid">
-          <button id="export-format-txt" class="export-tile-btn" type="button">
+          <button id="export-format-txt" class="export-tile-btn" type="button" style="grid-column: 1 / -1;">
             <span class="export-tile-icon">📄</span>
             <div class="export-tile-text">
               <strong>Save as Text Document (.txt)</strong>
               <span>Simple, universal file that opens on any phone, tablet, or PC in Notepad or Notes</span>
-            </div>
-          </button>
-          <button id="export-format-pdf" class="export-tile-btn" type="button">
-            <span class="export-tile-icon">🖨️</span>
-            <div class="export-tile-text">
-              <strong>Print or Save as PDF</strong>
-              <span>Clean formatted transcript document ready to print or save directly as a PDF</span>
             </div>
           </button>
         </div>
