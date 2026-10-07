@@ -604,12 +604,10 @@
     window.stopSpeaking();
 
     // 1. Primary High-Speed Engine: Native Browser SpeechRecognition (Zero-Latency Streaming)
+    // We intentionally omit recognition.lang or set it to undefined/empty so the browser automatically listens and detects ANY language spoken (Japanese, Spanish, French, etc.) naturally!
     if (recognition) {
       try {
-        const preferred = (window.voiceLang && window.voiceLang.trim() !== "")
-          ? window.voiceLang.trim()
-          : (navigator.language || "en-US");
-        recognition.lang = preferred;
+        recognition.lang = ""; // Auto-detect any spoken language naturally
         recognition.start();
         return;
       } catch (err) {
