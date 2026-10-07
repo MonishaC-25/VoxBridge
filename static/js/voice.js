@@ -234,7 +234,12 @@
     const audio = new Audio(ttsUrl);
     activeAudioElement = audio;
 
-    audio.playbackRate = window.speechRate || 1.0;
+    // Apply distinct acoustic speed/tone characteristics for Male vs Female personas across all languages
+    if (genderPref === "male") {
+      audio.playbackRate = (window.speechRate || 1.0) * 0.94;
+    } else {
+      audio.playbackRate = (window.speechRate || 1.0) * 1.03;
+    }
 
     let finished = false;
     const finishAudio = () => {

@@ -395,7 +395,7 @@ Return strictly a JSON object with this schema:
           },
         }),
         new Promise<any>((_, reject) =>
-          setTimeout(() => reject(new Error(`Timeout with ${modelName}`)), 3000)
+          setTimeout(() => reject(new Error(`Timeout with ${modelName}`)), 12000)
         ),
       ]);
 
