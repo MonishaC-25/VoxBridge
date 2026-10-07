@@ -173,7 +173,7 @@ export function detectLanguageHeuristic(text: string): {
     return LANGUAGE_REGISTRY.ar;
   }
   if (/[\u3040-\u309F\u30A0-\u30FF]/.test(trimmed)) return LANGUAGE_REGISTRY.ja;
-  if (/[\uAC00-\uD7AF]/.test(trimmed)) return LANGUAGE_REGISTRY.ko;
+  if (/[\u1100-\u11FF\u3130-\u318F\uAC00-\uD7AF]/.test(trimmed)) return LANGUAGE_REGISTRY.ko;
   if (/[\u4E00-\u9FFF]/.test(trimmed)) return LANGUAGE_REGISTRY.zh;
   if (/[\u0400-\u04FF]/.test(trimmed)) {
     if (/[іїєґ]/.test(trimmed.toLowerCase())) return LANGUAGE_REGISTRY.uk;
@@ -390,7 +390,7 @@ Return strictly a JSON object with this schema:
           contents: prompt,
           config: {
             responseMimeType: "application/json",
-            maxOutputTokens: 450,
+            maxOutputTokens: 850,
             temperature: 0.6,
           },
         }),
@@ -1816,7 +1816,7 @@ Return strictly a valid JSON object matching this schema:
           },
           config: {
             responseMimeType: "application/json",
-            maxOutputTokens: 400,
+            maxOutputTokens: 850,
             temperature: 0.6,
           },
         });
