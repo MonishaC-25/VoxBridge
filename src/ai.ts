@@ -45,7 +45,7 @@ function getAiClient(): GoogleGenAI | null {
   return null;
 }
 
-const GEMINI_MODELS = ["gemini-3.5-flash-lite", "gemini-3.8-flash", "gemini-3.8-pro"];
+const GEMINI_MODELS = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-1.5-flash"];
 const GROQ_MODEL = "llama-3.3-70b-versatile";
 
 export interface AIResponseResult {
@@ -1686,7 +1686,7 @@ export async function transcribeAudio(
 
   // 1. Try Gemini first if there is a valid key
   if (ai && isValidGeminiKey(key)) {
-    const modelsToTry = ["gemini-3.5-flash-lite", "gemini-3.8-flash", "gemini-3.8-pro"];
+    const modelsToTry = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-1.5-flash"];
     for (const model of modelsToTry) {
       try {
         console.log(`Attempting Gemini audio transcription with ${model}...`);
