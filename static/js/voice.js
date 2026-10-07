@@ -154,22 +154,15 @@
 
     const voice = getBestVoice(targetLang, genderPref);
 
-    // Use our state-of-the-art server-side Gemini 3.8 Neural TTS engine by default for all languages!
-    const alwaysUseStreamingTTS = true;
+    const alwaysUseStreamingTTS = false;
 
-    if (!voice || alwaysUseStreamingTTS) {
-      playStreamingTTS(cleanText, shortCode, onEnd);
-      return;
-    }
-
-    // Otherwise use browser SpeechSynthesis
-    if (!synth) {
+    if (!voice && !synth) {
       playStreamingTTS(cleanText, shortCode, onEnd);
       return;
     }
 
     try {
-      if (synth.paused) synth.resume();
+      if (synth && synth.paused) synth.resume();
     } catch (e) {}
 
     const utterance = new SpeechSynthesisUtterance(cleanText);
@@ -180,9 +173,9 @@
     }
 
     if (genderPref === "male") {
-      utterance.pitch = 0.9;
+      utterance.pitch = 0.8; // Distinct rich male voice tone
     } else {
-      utterance.pitch = 1.1;
+      utterance.pitch = 1.15; // Bright female voice tone
     }
 
     let finished = false;
@@ -609,8 +602,21 @@
     if (isListening || isRecording) return;
     window.stopSpeaking();
 
-    // Directly use Studio MediaRecorder + Gemini Neural Multilingual Acoustic Transcriber
-    // This bypasses browser-specific SpeechRecognition gaps for Korean, Japanese, Arabic, and other regional scripts!
+    // 1. High-Speed Web Speech API for instant 0ms streaming
+    if (recognition) {
+      try {
+        const preferred = (window.voiceLang && window.voiceLang.trim() !== "")
+          ? window.voiceLang.trim()
+          : "";
+        recognition.lang = preferred;
+        recognition.start();
+        return;
+      } catch (err) {
+        console.warn("Speech recognition error, falling back to MediaRecorder:", err);
+      }
+    }
+
+    // 2. Studio MediaRecorder + Gemini Neural Multilingual Acoustic Transcriber
     startMediaRecorder();
   };
 

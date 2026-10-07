@@ -1121,7 +1121,7 @@
   }
 
   /* ================= SENDING MESSAGES ================= */
-  async function sendQuery(rawText, explicitContextLang) {
+  async function sendQuery(rawText, preprocessedData) {
     const text = (rawText || messageInput.value || "").trim();
     if (!text || sendBtn.disabled) return;
 
@@ -1155,19 +1155,23 @@
     const typingBubble = addTypingBubble();
 
     try {
-      const preferredLang = (langPicker && langPicker.value) ? langPicker.value : "";
-      // "Any Language In. Same Language Out": Never force an old context language onto a new message!
-      const res = await fetch("/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text, name: customerName, lang: preferredLang }),
-      });
+      let data = preprocessedData;
 
-      if (!res.ok) {
-        throw new Error("Server error " + res.status);
+      if (!data) {
+        const preferredLang = (langPicker && langPicker.value) ? langPicker.value : "";
+        const res = await fetch("/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: text, name: customerName, lang: preferredLang }),
+        });
+
+        if (!res.ok) {
+          throw new Error("Server error " + res.status);
+        }
+
+        data = await res.json();
       }
 
-      const data = await res.json();
       typingBubble.remove();
 
       // If user input was Romanized or transliterated, update user bubble to show authentic native script!
@@ -1216,7 +1220,7 @@
       appendMessageElement(botMsg);
       scrollToBottom();
 
-      if (window.autoSpeak) {
+      if (window.autoSpeak !== false) {
         window.speak(data.reply, data.lang_code);
       }
     } catch (err) {
@@ -1295,12 +1299,8 @@
     const data = e.detail;
     if (!data || !data.reply) return;
 
-    // 1. Render user query
-    const userMessage = data.user_query_native || "🎙️ Voice Query";
-    appendMessage("user", userMessage);
-
-    // 2. Render AI reply directly
-    renderResponse(data);
+    const userMessage = data.user_query_native || "Voice query";
+    sendQuery(userMessage, data);
   });
 
   window.addEventListener("vox-listen-result", (e) => {
