@@ -1155,7 +1155,8 @@
     const typingBubble = addTypingBubble();
 
     try {
-      let data = preprocessedData;
+      const isPreprocessed = typeof preprocessedData === "object" && preprocessedData !== null && Boolean(preprocessedData.reply);
+      let data = isPreprocessed ? preprocessedData : null;
 
       if (!data) {
         const preferredLang = (langPicker && langPicker.value) ? langPicker.value : "";

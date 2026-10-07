@@ -11,6 +11,7 @@ import {
   transcribeAudio,
   transcribeAndChatAudio,
 } from "./src/ai.js";
+import { generateProjectPdf } from "./src/pdf.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -263,6 +264,18 @@ app.post("/api/voice-chat", apiRateLimiter(45, 60000), async (req: Request, res:
   } catch (err) {
     console.error("Voice chat endpoint error:", err);
     return res.status(500).json({ error: "Voice processing failed" });
+  }
+});
+
+// PDF Specification Download Route
+app.get(["/api/download-documentation-pdf", "/download-doc-pdf"], (_req: Request, res: Response) => {
+  try {
+    generateProjectPdf(res);
+  } catch (err) {
+    console.error("PDF generation error:", err);
+    if (!res.headersSent) {
+      res.status(500).json({ error: "Failed to generate PDF document" });
+    }
   }
 });
 
