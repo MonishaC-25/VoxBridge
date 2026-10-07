@@ -598,21 +598,19 @@
     if (isListening || isRecording) return;
     window.stopSpeaking();
 
-    // 1. Primary: Native Browser SpeechRecognition (works natively in Chrome/Edge, zero latency, auto-detects end of speech!)
-    if (recognition) {
+    // If a specific language is explicitly set, use native speech recognition with that exact code
+    if (recognition && window.voiceLang && window.voiceLang.trim() !== "") {
       try {
-        const targetLang = (window.voiceLang && window.voiceLang.trim() !== "")
-          ? window.voiceLang.trim()
-          : (navigator.language || "en-US");
-        recognition.lang = targetLang;
+        recognition.lang = window.voiceLang.trim();
         recognition.start();
         return;
       } catch (err) {
-        console.warn("Native speech recognition failed to start, using MediaRecorder fallback:", err);
+        console.warn("Explicit speech recognition failed, falling back to MediaRecorder:", err);
       }
     }
 
-    // 2. Fallback: Studio MediaRecorder with automatic silence detection
+    // Default & Universal: Studio MediaRecorder + Gemini Neural Multilingual Acoustic Transcriber
+    // This transcribes speech in its authentic native script without Romanized garble!
     startMediaRecorder();
   };
 

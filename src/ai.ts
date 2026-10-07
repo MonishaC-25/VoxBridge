@@ -54,6 +54,7 @@ export interface AIResponseResult {
   language: string;
   lang_code: string;
   detected_language: string;
+  user_query_native?: string;
   intent: string;
   sentiment: string;
   suggestions: string[];
@@ -343,17 +344,18 @@ async function tryGemini(
 Customer Name: "${customerName || "Customer"}"
 Customer Message: "${text}"
 
-CORE SYSTEM DIRECTIVE — "ANY LANGUAGE IN. SAME LANGUAGE OUT":
-1. LANGUAGE MATCHING (HIGHEST PRIORITY):
-   - Identify the language of the Customer Message: "${text}".
-   - You MUST reply 100% in that EXACT SAME language!
+CORE SYSTEM DIRECTIVE — "ANY LANGUAGE IN. SAME LANGUAGE OUT (AUTHENTIC NATIVE SCRIPT)":
+1. LANGUAGE & SCRIPT MATCHING (HIGHEST PRIORITY):
+   - Identify the language and meaning of the Customer Message: "${text}".
+   - If the user wrote or spoke in a language (even if transliterated in Latin/English letters like "Kai Gayi maska", "Aap kaise ho", "Enna aachu", "Kemon acho"):
+     * Identify the true intended native language (e.g. Hindi, Gujarati, Tamil, Telugu, Bengali, Marathi, Urdu, etc.).
+     * Render the customer's query in its proper authentic native script into "user_query_native" (e.g. 'कहाँ गई मटका' or 'ક્યાં ગઈ મસ્કા' or 'आप कैसे हो').
+     * Reply 100% in that EXACT SAME language using its authentic native script (e.g. Devanagari for Hindi/Marathi, Gujarati script, Tamil script, Telugu script, etc.).
+     * NEVER reply in Romanized/English transliteration for non-Latin languages!
    - If the customer writes in English -> Reply in English.
-   - If the customer writes in Hindi -> Reply in Hindi.
-   - If the customer writes in Tamil -> Reply in Tamil.
    - If the customer writes in Spanish -> Reply in Spanish.
    - If the customer writes in French -> Reply in French.
-   - If the customer writes in German, Japanese, Korean, Arabic, Telugu, Kannada, Russian, Italian, or ANY other language -> Reply in that exact same language.
-   - NEVER switch to a different language or force Hindi/English on the user unless they asked in that language.
+   - If the customer writes in German, Japanese, Korean, Arabic, Russian, or ANY other language -> Reply in that exact same language and authentic script.
 
 INTELLIGENCE & KNOWLEDGE GUIDELINES:
 1. CHATGPT-GRADE COMPREHENSIVE REPLIES:
@@ -362,21 +364,22 @@ INTELLIGENCE & KNOWLEDGE GUIDELINES:
    - If the user asks about business support (hours, pricing, refunds, tracking), provide prompt, helpful customer support details (24/7 live support, $29/mo plans with 14-day free trial, automatic refund processing for duplicate charges within 3-5 days).
 2. CONVERSATIONAL EXCELLENCE:
    - Address the customer naturally and politely.
-   - Provide a natural conversational response in their native language.
-3. ACCURATE SPEECH CODE: Output the exact BCP-47 speech code of your reply language (e.g. 'en-US', 'hi-IN', 'ta-IN', 'es-ES', 'fr-FR', 'de-DE', 'zh-CN', 'ja-JP', 'ko-KR', 'ar-SA', etc.).
+   - Provide a natural conversational response in their native language script.
+3. ACCURATE SPEECH CODE: Output the exact BCP-47 speech code of your reply language (e.g. 'hi-IN', 'gu-IN', 'ta-IN', 'te-IN', 'es-ES', 'fr-FR', 'de-DE', 'zh-CN', 'ja-JP', 'ko-KR', 'ar-SA', 'en-US', etc.).
 4. ENGLISH TRANSLATION: Provide an accurate English translation of your reply for business logs.
-5. NATIVE FOLLOW-UP SUGGESTIONS: Provide exactly 3 short, smart follow-up suggestions in that EXACT SAME language.
+5. NATIVE FOLLOW-UP SUGGESTIONS: Provide exactly 3 short, smart follow-up suggestions in that EXACT SAME authentic native script.
 
 Return strictly a JSON object with this schema:
 {
-  "language": "Full English name of language (e.g. Spanish, French, German, Japanese, Chinese, Arabic, Russian, English, Korean, Tamil, Hindi)",
-  "lang_code": "Standard BCP-47 speech code (e.g. es-ES, fr-FR, de-DE, zh-CN, ja-JP, ko-KR, ar-SA, en-US, ta-IN, hi-IN)",
-  "detected_language": "Two-letter ISO 639-1 code (e.g. es, fr, de, zh, ja, ko, ar, en, ta, hi)",
-  "reply": "Direct, conversational, natural, and comprehensive ChatGPT-style answer in the customer's language",
+  "user_query_native": "The customer's input converted into its authentic native script (e.g. 'आप कैसे हो' or 'ક્યાં ગઈ મસ્કા' / 'कहाँ गई मटका' or 'என்ன ஆச்சு'. If already in native script or standard English, keep it as-is)",
+  "language": "Full English name of language (e.g. Hindi, Gujarati, Tamil, Telugu, Spanish, French, German, Japanese, Chinese, Arabic, Russian, English, Korean)",
+  "lang_code": "Standard BCP-47 speech code (e.g. hi-IN, gu-IN, ta-IN, te-IN, es-ES, fr-FR, de-DE, zh-CN, ja-JP, ko-KR, ar-SA, en-US)",
+  "detected_language": "Two-letter ISO 639-1 code (e.g. hi, gu, ta, te, es, fr, de, zh, ja, ko, ar, en)",
+  "reply": "Direct, conversational, natural, and comprehensive ChatGPT-style answer written completely in that language's authentic native script",
   "translation": "Accurate English translation",
   "intent": "Brief category (e.g. General Knowledge, Technical Inquiry, Support Hours, Pricing, Order Tracking, Billing, Conversation)",
   "sentiment": "Positive, Neutral, or Inquiring",
-  "suggestions": ["Follow-up question 1 in that language", "Follow-up question 2 in that language", "Follow-up question 3 in that language"]
+  "suggestions": ["Follow-up question 1 in authentic native script", "Follow-up question 2 in authentic native script", "Follow-up question 3 in authentic native script"]
 }`;
 
   for (const modelName of GEMINI_MODELS) {
@@ -410,6 +413,7 @@ Return strictly a JSON object with this schema:
             language: parsed.language,
             lang_code: parsed.lang_code || (reg ? reg.code : "en-US"),
             detected_language: detectedCode,
+            user_query_native: parsed.user_query_native || text,
             intent: parsed.intent || "General Knowledge",
             sentiment: parsed.sentiment || "Neutral",
             suggestions: Array.isArray(parsed.suggestions) ? parsed.suggestions : [],

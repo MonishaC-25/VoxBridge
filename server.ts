@@ -367,6 +367,7 @@ app.post("/chat", async (req: Request, res: Response) => {
       language: result.language,
       lang_code: result.lang_code,
       detected_language: result.detected_language,
+      user_query_native: result.user_query_native || userMessage,
       intent: result.intent,
       sentiment: result.sentiment,
       suggestions: result.suggestions,

@@ -1170,6 +1170,16 @@
       const data = await res.json();
       typingBubble.remove();
 
+      // If user input was Romanized or transliterated, update user bubble to show authentic native script!
+      if (data.user_query_native && data.user_query_native.trim() && data.user_query_native !== userMsg.text) {
+        userMsg.text = data.user_query_native.trim();
+        const userRow = document.getElementById("msg-" + userMsg.id);
+        if (userRow) {
+          const textEl = userRow.querySelector(".message-text");
+          if (textEl) textEl.textContent = data.user_query_native.trim();
+        }
+      }
+
       if (data.detected_language) {
         conv.activeLang = data.detected_language;
       }
