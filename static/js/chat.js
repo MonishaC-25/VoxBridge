@@ -46,6 +46,7 @@
   const starterView = document.getElementById("starter-view");
   const voiceStatusBar = document.getElementById("voice-status-bar");
   const voiceStatusText = document.getElementById("voice-status-text");
+  const stopSpeechAudioBtn = document.getElementById("stop-speech-audio-btn");
 
   const chatForm = document.getElementById("chat-form");
   const messageInput = document.getElementById("message-input");
@@ -1198,11 +1199,11 @@
 
     try {
       const preferredLang = (langPicker && langPicker.value) ? langPicker.value : "";
-      const contextLang = explicitContextLang || conv.activeLang || "";
+      // "Any Language In. Same Language Out": Never force an old context language onto a new message!
       const res = await fetch("/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text, name: customerName, lang: preferredLang, context_lang: contextLang }),
+        body: JSON.stringify({ message: text, name: customerName, lang: preferredLang }),
       });
 
       if (!res.ok) {
@@ -1242,10 +1243,6 @@
       detectedFlag.textContent = conv.flag;
       detectedLangLabel.textContent = `${data.language} (${data.detected_language.toUpperCase()})`;
       speechCodeBadge.textContent = data.lang_code.toUpperCase();
-
-      if (!langPicker.value && data.lang_code) {
-        window.voiceLang = data.lang_code;
-      }
 
       saveConversations();
       renderSidebarHistory();
@@ -1382,12 +1379,18 @@
   window.addEventListener("vox-speak-start", (e) => {
     setVoiceStatusBar(true, `Vocalizing in ${e.detail?.langCode || "native accent"}…`);
     setVisualizerState("speaking", "NEURAL TTS OUTPUT");
+    if (stopSpeechAudioBtn) {
+      stopSpeechAudioBtn.style.display = "inline-flex";
+    }
   });
 
   window.addEventListener("vox-speak-end", () => {
     if (!window.isListening()) {
       setVoiceStatusBar(false);
       setVisualizerState("idle", "VOICE READY");
+    }
+    if (stopSpeechAudioBtn) {
+      stopSpeechAudioBtn.style.display = "none";
     }
     if (currentSpeakingButton) {
       resetAudioButton(currentSpeakingButton);
@@ -1397,6 +1400,9 @@
   window.addEventListener("vox-speak-stop", () => {
     setVoiceStatusBar(false);
     setVisualizerState("idle", "VOICE READY");
+    if (stopSpeechAudioBtn) {
+      stopSpeechAudioBtn.style.display = "none";
+    }
     if (currentSpeakingButton) {
       resetAudioButton(currentSpeakingButton);
     }
@@ -1468,7 +1474,27 @@
 
   if (micBtn) {
     micBtn.addEventListener("click", () => {
-      window.toggleVoiceRecognition();
+      if (window.isListening && window.isListening()) {
+        // Stop listening immediately!
+        window.stopVoiceRecognition();
+        const spokenText = messageInput.value.trim();
+        if (spokenText) {
+          // Immediately send the spoken query for a quick response!
+          sendQuery(spokenText);
+        }
+      } else {
+        window.startVoiceRecognition();
+      }
+    });
+  }
+
+  if (stopSpeechAudioBtn) {
+    stopSpeechAudioBtn.addEventListener("click", () => {
+      window.stopSpeaking();
+      if (stopSpeechAudioBtn) stopSpeechAudioBtn.style.display = "none";
+      setVoiceStatusBar(false);
+      setVisualizerState("idle", "VOICE READY");
+      showToast("⏹️ Audio playback stopped");
     });
   }
 

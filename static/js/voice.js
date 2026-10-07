@@ -148,8 +148,7 @@
     const cleanText = text.replace(/[*_#`~[\]]/g, "").trim();
     if (!cleanText) return;
 
-    const targetLang = langCode || window.voiceLang || "en-US";
-    window.voiceLang = targetLang;
+    const targetLang = langCode || (window.voiceLang && window.voiceLang !== "" ? window.voiceLang : "en-US");
     const shortCode = targetLang.split("-")[0].toLowerCase();
     const genderPref = (window.voiceGender || "female").toLowerCase();
 

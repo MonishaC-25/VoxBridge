@@ -45,7 +45,7 @@ function getAiClient(): GoogleGenAI | null {
   return null;
 }
 
-const GEMINI_MODELS = ["gemini-3.8-flash", "gemini-flash-latest", "gemini-3.1-flash-lite"];
+const GEMINI_MODELS = ["gemini-3.8-flash", "gemini-flash-latest"];
 const GROQ_MODEL = "llama-3.3-70b-versatile";
 
 export interface AIResponseResult {
@@ -342,7 +342,20 @@ async function tryGemini(
 
 Customer Name: "${customerName || "Customer"}"
 Customer Message: "${text}"
-${activeLangObj ? `Current conversation language context: ${activeLangObj.name} (${activeLangObj.code})` : ""}
+
+CORE SYSTEM DIRECTIVE — "ANY LANGUAGE IN. SAME LANGUAGE OUT":
+1. LANGUAGE IDENTIFICATION & MATCHING (ABSOLUTE HIGHEST PRIORITY):
+   - Analyze the Customer Message: "${text}".
+   - Detect what language the customer is actually using in this message right now.
+   - You MUST reply 100% in that EXACT SAME language!
+   - If the customer writes in English -> You MUST reply in English.
+   - If the customer writes in Hindi -> You MUST reply in Hindi.
+   - If the customer writes in Tamil -> You MUST reply in Tamil.
+   - If the customer writes in Spanish -> You MUST reply in Spanish.
+   - If the customer writes in French -> You MUST reply in French.
+   - If the customer writes in German, Japanese, Korean, Arabic, Telugu, Kannada, or ANY other language -> You MUST reply in that exact same language.
+   - NEVER reply in Hindi if the customer is typing or speaking in English or another language!
+   - NEVER force an old session language on the customer if their current message is in a different language.
 
 BUSINESS KNOWLEDGE & CONTEXT:
 1. SUPPORT HOURS: Live support is available 24/7/365.
@@ -353,12 +366,11 @@ BUSINESS KNOWLEDGE & CONTEXT:
 6. LIVE HUMAN AGENT: Customers can connect to a live agent anytime.
 
 CRITICAL RULES:
-1. DYNAMIC CHATGPT-LIKE CONVERSATIONAL BEHAVIOR:
-   - Reply to ANYTHING in ANY language. Be highly intelligent, engaging, and professional.
+1. DYNAMIC CONVERSATIONAL SUPPORT:
    - DIRECTLY ADDRESS SPECIFIC INQUIRIES: If the customer asks a specific question (e.g. about double charges, refund, pricing, hours, or tracking), immediately address that question with details.
-   - NEVER repeat generic welcomes (like "How can I help you today?") when the customer has already asked a specific support question! Answer their specific question directly.
-   - Reply 100% in the customer's exact language (${activeLangObj?.name || "detected language"}). Never switch languages mid-conversation unless requested.
-2. ACCURATE SPEECH CODE: Output the exact BCP-47 speech code (e.g. 'ta-IN', 'es-ES', 'fr-FR', 'de-DE', 'zh-CN', 'ja-JP', 'ko-KR', 'ar-SA', 'ru-RU', 'en-US', etc.).
+   - Answer their specific question directly and helpfully.
+   - Reply 100% in the customer's exact language.
+2. ACCURATE SPEECH CODE: Output the exact BCP-47 speech code of your reply language (e.g. 'en-US', 'hi-IN', 'ta-IN', 'es-ES', 'fr-FR', 'de-DE', 'zh-CN', 'ja-JP', 'ko-KR', 'ar-SA', etc.).
 3. ENGLISH TRANSLATION: Provide an accurate, high-quality English translation of your reply for business logs.
 4. NATIVE FOLLOW-UP SUGGESTIONS: Provide exactly 3 short, relevant, highly customized follow-up suggestion chips in that EXACT SAME language.
 
@@ -374,34 +386,29 @@ Return strictly a JSON object with this schema:
   "suggestions": ["Follow-up question 1 in that language", "Follow-up question 2 in that language", "Follow-up question 3 in that language"]
 }`;
 
-  for (const modelName of GEMINI_MODELS) {
-    try {
-      const response = await ai.models.generateContent({
-        model: modelName,
+  try {
+    const response = await Promise.race([
+      ai.models.generateContent({
+        model: "gemini-3.8-flash",
         contents: prompt,
         config: {
           responseMimeType: "application/json",
-          maxOutputTokens: 500,
+          maxOutputTokens: 300,
           temperature: 0.6,
         },
-      });
+      }),
+      new Promise<any>((_, reject) =>
+        setTimeout(() => reject(new Error("Timeout with gemini-3.8-flash")), 1500)
+      ),
+    ]);
 
-      const outputText = response.text?.trim();
-      if (!outputText) continue;
-
+    const outputText = response.text?.trim();
+    if (outputText) {
       const parsed = JSON.parse(outputText);
       if (parsed.reply && parsed.language) {
         const reg = LANGUAGE_REGISTRY[parsed.detected_language];
         const detectedCode = parsed.detected_language || (reg ? reg.shortCode : "en");
-        let englishTrans = (parsed.translation || "").trim();
-
-        // If detected language is non-English and translation was missing or same as native text, generate clean English translation
-        if (detectedCode !== "en" && (!englishTrans || englishTrans === parsed.reply)) {
-          const autoTrans = await translateText(parsed.reply, "en");
-          if (autoTrans.translatedText && autoTrans.translatedText !== parsed.reply) {
-            englishTrans = autoTrans.translatedText;
-          }
-        }
+        const englishTrans = (parsed.translation || "").trim();
 
         return {
           reply: parsed.reply,
@@ -414,14 +421,10 @@ Return strictly a JSON object with this schema:
           suggestions: Array.isArray(parsed.suggestions) ? parsed.suggestions : [],
         };
       }
-    } catch (err: any) {
-      const msg = err?.message || String(err);
-      if (msg.includes("API_KEY_INVALID") || msg.includes("API key not valid")) {
-        // Stop trying Gemini if key is invalid
-        break;
-      }
-      console.warn(`Gemini model ${modelName} attempt failed:`, msg);
     }
+  } catch (err: any) {
+    const msg = err?.message || String(err);
+    console.warn("Gemini attempt finished:", msg);
   }
 
   return null;
@@ -447,12 +450,8 @@ export async function processChatMessage(
   let activeTargetLang = "";
   if (normPref) {
     activeTargetLang = normPref;
-  } else if (isDistinctScript) {
-    activeTargetLang = heuristic.shortCode;
-  } else if (normContext && (heuristic.shortCode === "en" || heuristic.shortCode === normContext)) {
-    // Continue in same context language for follow-ups, short queries, suggestions
-    activeTargetLang = normContext;
   } else {
+    // Pure "Any Language In. Same Language Out": The message itself determines the language!
     activeTargetLang = heuristic.shortCode;
   }
 
