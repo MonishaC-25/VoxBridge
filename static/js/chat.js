@@ -1256,20 +1256,23 @@
   }
 
   /* ================= VOICE & EVENTS INTEGRATION ================= */
+  let activeSpokenTranscript = "";
+
   window.addEventListener("vox-listen-start", () => {
+    activeSpokenTranscript = "";
     micBtn.classList.add("listening");
     micBtn.querySelector(".mic-btn-text").textContent = "Stop";
-    setVoiceStatusBar(true, `Listening in ${window.voiceLang || "your native accent"}…`);
+    setVoiceStatusBar(true, "🎙️ Listening to your voice… Speak freely in any language");
     setVisualizerState("listening", "MIC AUDIO STREAMING");
-    messageInput.placeholder = "Listening now… speak naturally in your language";
+    messageInput.value = "";
+    messageInput.placeholder = "🎙️ Listening to your speech… (Language detected automatically)";
   });
 
   window.addEventListener("vox-listen-result", (e) => {
     const { interim, final, live } = e.detail;
-    const textToShow = live || final || interim || "";
-    if (textToShow) {
-      messageInput.value = textToShow;
-      charCount.textContent = `${textToShow.length} / 1000`;
+    const textCaptured = live || final || interim || "";
+    if (textCaptured) {
+      activeSpokenTranscript = textCaptured;
     }
   });
 
@@ -1283,10 +1286,12 @@
     messageInput.placeholder =
       "Speak or type in any language (Press Enter to send)…";
 
-    // When listening stops, automatically send the recognized message
-    const spokenText = messageInput.value.trim();
-    if (spokenText) {
-      sendQuery(spokenText);
+    // Automatically send the recognized speech to server for language detection & same-language reply
+    const textToSend = activeSpokenTranscript.trim() || messageInput.value.trim();
+    messageInput.value = "";
+    activeSpokenTranscript = "";
+    if (textToSend) {
+      sendQuery(textToSend);
     }
   });
 

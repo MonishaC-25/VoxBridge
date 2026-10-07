@@ -1682,7 +1682,7 @@ export async function transcribeAudio(
 
   // 1. Try Gemini first if there is a valid key
   if (ai && isValidGeminiKey(key)) {
-    const modelsToTry = ["gemini-3.5-transcribe", "gemini-3.8-flash", "gemini-flash-latest"];
+    const modelsToTry = ["gemini-3.5-flash-lite", "gemini-3.8-flash", "gemini-3.8-pro"];
     for (const model of modelsToTry) {
       try {
         console.log(`Attempting Gemini audio transcription with ${model}...`);
