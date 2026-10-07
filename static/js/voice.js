@@ -429,40 +429,44 @@
           isRecording = false;
           isListening = false;
           cleanupRecordingResources(stream);
-          window.dispatchEvent(new CustomEvent("vox-listen-end"));
 
           const mime = mediaRecorder.mimeType || selectedMime || "audio/webm";
           const audioBlob = new Blob(audioChunks, { type: mime });
 
-          if (audioBlob.size < 200) {
+          if (audioBlob.size < 300) {
+            window.dispatchEvent(new CustomEvent("vox-listen-end", { detail: { text: "" } }));
             return;
           }
+
+          window.dispatchEvent(new CustomEvent("vox-transcribing-start"));
 
           // Convert to base64 and send to transcription endpoint
           const reader = new FileReader();
           reader.readAsDataURL(audioBlob);
           reader.onloadend = () => {
-            const base64 = reader.result.split(",")[1];
-            
+            const base64 = reader.result ? String(reader.result).split(",")[1] : "";
+            if (!base64) {
+              window.dispatchEvent(new CustomEvent("vox-listen-end", { detail: { text: "" } }));
+              return;
+            }
+
             fetch("/api/transcribe", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ audio: base64, mimeType: mime })
+              body: JSON.stringify({ audio: base64, mimeType: mime }),
             })
-            .then((res) => {
-              if (!res.ok) throw new Error();
-              return res.json();
-            })
-            .then((data) => {
-              if (data.text && data.text.trim()) {
-                window.dispatchEvent(new CustomEvent("vox-listen-result", {
-                  detail: { interim: "", final: data.text.trim() }
-                }));
-              }
-            })
-            .catch((err) => {
-              console.warn("Audio transcription error:", err);
-            });
+              .then((res) => {
+                if (!res.ok) throw new Error("HTTP " + res.status);
+                return res.json();
+              })
+              .then((data) => {
+                const transcribed = (data.text || "").trim();
+                window.dispatchEvent(new CustomEvent("vox-listen-end", { detail: { text: transcribed } }));
+              })
+              .catch((err) => {
+                console.warn("Audio transcription error:", err);
+                window.dispatchEvent(new CustomEvent("vox-listen-end", { detail: { text: "" } }));
+              });
           };
         };
 
@@ -589,7 +593,8 @@
       if (speechSilenceTimeout) clearTimeout(speechSilenceTimeout);
       if (!isRecording) {
         isListening = false;
-        window.dispatchEvent(new CustomEvent("vox-listen-end"));
+        const textToEmit = accumulatedFinalText ? accumulatedFinalText.trim() : "";
+        window.dispatchEvent(new CustomEvent("vox-listen-end", { detail: { text: textToEmit } }));
       }
     };
   }
