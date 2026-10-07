@@ -401,8 +401,8 @@
               } else if (hasSpokenAudio) {
                 if (!silenceStartTime) {
                   silenceStartTime = Date.now();
-                } else if (Date.now() - silenceStartTime > 1300) {
-                  // User finished speaking! Auto-stop and submit
+                } else if (Date.now() - silenceStartTime > 3200) {
+                  // User finished speaking! Auto-stop after 3.2 seconds of natural silence
                   clearInterval(silenceCheckInterval);
                   silenceCheckInterval = null;
                   stopMediaRecorder();
@@ -412,12 +412,12 @@
           }
         } catch (e) {}
 
-        // Safety timeout: automatically stop after 6 seconds so it never hangs
+        // Generous maximum timeout of 60 seconds
         maxRecordTimeout = setTimeout(() => {
           if (isRecording) {
             stopMediaRecorder();
           }
-        }, 6000);
+        }, 60000);
 
         mediaRecorder.ondataavailable = (event) => {
           if (event.data && event.data.size > 0) {
@@ -517,40 +517,59 @@
 
   if (SpeechRecognition) {
     recognition = new SpeechRecognition();
-    recognition.continuous = false;
+    recognition.continuous = true;
     recognition.interimResults = true;
     recognition.maxAlternatives = 1;
 
+    let accumulatedFinalText = "";
+    let speechSilenceTimeout = null;
+
     recognition.onstart = function () {
       isListening = true;
+      accumulatedFinalText = "";
       window.dispatchEvent(new CustomEvent("vox-listen-start"));
     };
 
     recognition.onresult = function (event) {
       let interimTranscript = "";
-      let finalTranscript = "";
 
       for (let i = event.resultIndex; i < event.results.length; ++i) {
         const transcript = event.results[i][0].transcript;
         if (event.results[i].isFinal) {
-          finalTranscript += transcript;
+          accumulatedFinalText += (accumulatedFinalText ? " " : "") + transcript.trim();
         } else {
           interimTranscript += transcript;
         }
       }
 
+      const liveText = (accumulatedFinalText + (interimTranscript ? " " + interimTranscript : "")).trim();
+
       window.dispatchEvent(
         new CustomEvent("vox-listen-result", {
           detail: {
             interim: interimTranscript,
-            final: finalTranscript,
+            final: accumulatedFinalText,
+            live: liveText,
           },
         })
       );
+
+      // Give user natural breathing/thinking room: 3.0s of silence before auto-stopping
+      if (speechSilenceTimeout) clearTimeout(speechSilenceTimeout);
+      if (liveText) {
+        speechSilenceTimeout = setTimeout(() => {
+          if (isListening && recognition) {
+            try {
+              recognition.stop();
+            } catch (e) {}
+          }
+        }, 3000);
+      }
     };
 
     recognition.onerror = function (event) {
       console.warn("Speech recognition error:", event.error);
+      if (speechSilenceTimeout) clearTimeout(speechSilenceTimeout);
       isListening = false;
       if (event.error === "no-speech") {
         window.dispatchEvent(new CustomEvent("vox-listen-end"));
@@ -567,6 +586,7 @@
     };
 
     recognition.onend = function () {
+      if (speechSilenceTimeout) clearTimeout(speechSilenceTimeout);
       if (!isRecording) {
         isListening = false;
         window.dispatchEvent(new CustomEvent("vox-listen-end"));

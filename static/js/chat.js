@@ -1308,16 +1308,11 @@
   });
 
   window.addEventListener("vox-listen-result", (e) => {
-    const { interim, final } = e.detail;
-    if (interim) {
-      messageInput.value = interim;
-      charCount.textContent = `${interim.length} / 1000`;
-    }
-    if (final && final.trim()) {
-      messageInput.value = final.trim();
-      charCount.textContent = `${final.trim().length} / 1000`;
-      window.stopVoiceRecognition();
-      sendQuery(final.trim());
+    const { interim, final, live } = e.detail;
+    const textToShow = live || final || interim || "";
+    if (textToShow) {
+      messageInput.value = textToShow;
+      charCount.textContent = `${textToShow.length} / 1000`;
     }
   });
 
@@ -1330,6 +1325,12 @@
     }
     messageInput.placeholder =
       "Speak or type in any language (Press Enter to send)…";
+
+    // When listening stops, automatically send the recognized message
+    const spokenText = messageInput.value.trim();
+    if (spokenText) {
+      sendQuery(spokenText);
+    }
   });
 
   const micPermissionModal = document.getElementById("mic-permission-modal");
@@ -1475,13 +1476,7 @@
   if (micBtn) {
     micBtn.addEventListener("click", () => {
       if (window.isListening && window.isListening()) {
-        // Stop listening immediately!
         window.stopVoiceRecognition();
-        const spokenText = messageInput.value.trim();
-        if (spokenText) {
-          // Immediately send the spoken query for a quick response!
-          sendQuery(spokenText);
-        }
       } else {
         window.startVoiceRecognition();
       }

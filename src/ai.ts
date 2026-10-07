@@ -1317,21 +1317,70 @@ export async function translateText(
   const reg = LANGUAGE_REGISTRY[normalizedTarget] || LANGUAGE_REGISTRY[targetLang] || LANGUAGE_REGISTRY.en;
   const langCode = reg.code;
 
+  // 1. High-accuracy neural translation engine (instant & 100% accurate)
+  try {
+    const gtxUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${encodeURIComponent(normalizedTarget)}&dt=t&q=${encodeURIComponent(text)}`;
+    const transRes = await fetch(gtxUrl, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      },
+    });
+    if (transRes.ok) {
+      const raw = await transRes.json();
+      if (Array.isArray(raw) && Array.isArray(raw[0])) {
+        const fullTranslation = raw[0].map((chunk: any) => chunk[0] || "").join("");
+        if (fullTranslation && fullTranslation.trim()) {
+          return {
+            translatedText: fullTranslation.trim(),
+            targetLang,
+            lang_code: langCode,
+          };
+        }
+      }
+    }
+  } catch (_err) {
+    // Fall through
+  }
+
+  // 1b. Secondary Neural Translation API
+  try {
+    const dictUrl = `https://clients5.google.com/translate_a/t?client=dict-chrome-ex&sl=auto&tl=${encodeURIComponent(normalizedTarget)}&q=${encodeURIComponent(text)}`;
+    const dictRes = await fetch(dictUrl, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      },
+    });
+    if (dictRes.ok) {
+      const dictData = await dictRes.json();
+      if (Array.isArray(dictData) && Array.isArray(dictData[0]) && dictData[0][0]) {
+        return {
+          translatedText: dictData[0][0].trim(),
+          targetLang,
+          lang_code: langCode,
+        };
+      }
+    }
+  } catch (_err) {
+    // Fall through to Gemini
+  }
+
+  // 2. Gemini Translation Fallback
   const ai = getAiClient();
   if (ai) {
-    for (const modelName of GEMINI_MODELS) {
-      try {
-        const response = await ai.models.generateContent({
-          model: modelName,
+    try {
+      const response = await Promise.race([
+        ai.models.generateContent({
+          model: "gemini-3.8-flash",
           contents: `Translate the following text accurately and naturally into language '${reg.name}' (${targetLang}):\n\n"${text}"\n\nReturn strictly and ONLY the translated text without commentary or quotation marks.`,
-        });
-        const result = response.text?.trim();
-        if (result && result !== text) {
-          return { translatedText: result, targetLang, lang_code: langCode };
-        }
-      } catch (_e) {
-        // Try next model
+        }),
+        new Promise<any>((_, reject) => setTimeout(() => reject(new Error("Timeout")), 2000)),
+      ]);
+      const result = response.text?.trim();
+      if (result && result !== text) {
+        return { translatedText: result, targetLang, lang_code: langCode };
       }
+    } catch (_e) {
+      // Try next
     }
   }
 

@@ -133,7 +133,7 @@ app.post("/chat", apiRateLimiter(60, 60000), async (req: Request, res: Response)
 });
 
 // Translate endpoint (with rate limiter & bounds check)
-app.post("/translate", apiRateLimiter(80, 60000), async (req: Request, res: Response) => {
+app.post(["/translate", "/api/translate"], apiRateLimiter(80, 60000), async (req: Request, res: Response) => {
   const text = (req.body?.text || "").trim();
   const targetLang = (req.body?.targetLang || "en").trim();
 
