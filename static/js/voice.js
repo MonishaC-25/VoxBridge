@@ -8,16 +8,11 @@
   let activeUtterance = null;
   let cachedVoices = [];
 
-  // Default voice gender: 'female' | 'male'
-  window.voiceGender = localStorage.getItem("voxbridge_voice_gender") || "female";
+  // Default voice gender: locked to female voice only
+  window.voiceGender = "female";
 
   window.setVoiceGender = function (gender) {
-    if (gender === "male" || gender === "female") {
-      window.voiceGender = gender;
-      try {
-        localStorage.setItem("voxbridge_voice_gender", gender);
-      } catch (e) {}
-    }
+    window.voiceGender = "female";
   };
 
   const FEMALE_VOICE_NAMES = [
@@ -178,13 +173,8 @@
       utterance.voice = voice;
     }
 
-    if (genderPref === "male") {
-      utterance.pitch = 0.55; // Deep resonant male pitch
-      utterance.rate = (window.speechRate || 1.0) * 0.92;
-    } else {
-      utterance.pitch = 1.20; // Bright crisp female pitch
-      utterance.rate = (window.speechRate || 1.0) * 1.02;
-    }
+    utterance.pitch = 1.0; // Standard natural female voice tone
+    utterance.rate = window.speechRate || 1.0;
 
     let finished = false;
     const finishCallback = () => {
@@ -236,16 +226,7 @@
     const audio = new Audio(ttsUrl);
     activeAudioElement = audio;
 
-    // Apply acoustic pitch transposition for Male vs Female personas across ALL languages
-    audio.preservesPitch = false;
-    if ("webkitPreservesPitch" in audio) audio.webkitPreservesPitch = false;
-    if ("mozPreservesPitch" in audio) audio.mozPreservesPitch = false;
-
-    if (genderPref === "male") {
-      audio.playbackRate = (window.speechRate || 1.0) * 0.84; // Deepens vocal formants into distinct Male voice!
-    } else {
-      audio.playbackRate = (window.speechRate || 1.0) * 1.08; // Brightens vocal formants into distinct Female voice!
-    }
+    audio.playbackRate = window.speechRate || 1.0;
 
     let finished = false;
     const finishAudio = () => {

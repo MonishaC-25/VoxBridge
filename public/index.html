@@ -218,17 +218,7 @@
           </div>
 
           <div class="header-end">
-            <!-- Voice Gender Picker (Female / Male) -->
-            <div class="voice-picker-container" title="Select Female or Male Voice">
-              <span class="picker-label">Voice:</span>
-              <select id="header-gender-picker" class="voice-select" aria-label="Select Female or Male Voice">
-                <option value="female">👩 Female Voice</option>
-                <option value="male">👨 Male Voice</option>
-              </select>
-              <button id="header-test-voice-btn" class="header-preview-btn" type="button" title="Preview selected voice tone">
-                🔊
-              </button>
-            </div>
+
 
             <!-- Voice Accent Picker -->
             <div class="voice-picker-container">
@@ -341,35 +331,7 @@
               Type or speak in your language. VoxBridge detects it instantly and replies back in the same language. You can also translate any response to other languages on-demand!
             </p>
 
-            <!-- Step 2: Choose Female or Male Voice after entering -->
-            <div class="voice-persona-card" id="starter-voice-card">
-              <div class="voice-card-header">
-                <span class="voice-card-badge">🎙️ STEP 2: SELECT AI VOICE PERSONA</span>
-                <h4>Choose Your Preferred AI Voice Tone</h4>
-                <p>Select female or male acoustic voice tone for all speech audio. You can also switch this anytime in the top header.</p>
-              </div>
-              <div class="gender-segmented-control starter-voice-control">
-                <button type="button" class="gender-segment-btn active" id="starter-gender-female" data-gender="female">
-                  <span class="segment-icon">👩</span>
-                  <div class="segment-info">
-                    <strong>Female Voice</strong>
-                    <span>Warm, empathetic &amp; natural</span>
-                  </div>
-                </button>
-                <button type="button" class="gender-segment-btn" id="starter-gender-male" data-gender="male">
-                  <span class="segment-icon">👨</span>
-                  <div class="segment-info">
-                    <strong>Male Voice</strong>
-                    <span>Crisp, authoritative &amp; executive</span>
-                  </div>
-                </button>
-              </div>
-              <div class="voice-card-actions">
-                <button id="starter-test-voice-btn" class="header-preview-btn starter-voice-preview" type="button" title="Test selected voice">
-                  🔊 Preview Selected Voice Tone
-                </button>
-              </div>
-            </div>
+
 
             <div class="prompt-shelf">
               <div class="prompts-matrix">
@@ -528,24 +490,7 @@
           <input type="text" id="modal-user-name-input" class="search-input modal-name-field" placeholder="Enter your full name (e.g. Alex Carter)…" maxlength="50" autocomplete="name" autofocus>
           <span id="name-error-msg" class="name-error-text hidden">Please enter your name to continue.</span>
           
-          <div class="modal-voice-picker-group">
-            <div class="modal-voice-header">
-              <label class="name-input-label">Preferred AI Voice Tone</label>
-              <button id="modal-test-voice-btn" class="studio-nav-pill test-voice-pill" type="button" title="Test selected voice">
-                🔊 Preview
-              </button>
-            </div>
-            <div class="gender-segmented-control">
-              <button type="button" class="gender-segment-btn active" id="modal-gender-female" data-gender="female">
-                <span class="segment-icon">👩</span>
-                <span class="segment-text">Female Voice</span>
-              </button>
-              <button type="button" class="gender-segment-btn" id="modal-gender-male" data-gender="male">
-                <span class="segment-icon">👨</span>
-                <span class="segment-text">Male Voice</span>
-              </button>
-            </div>
-          </div>
+
         </div>
       </div>
       <div class="dialog-actions">
@@ -572,27 +517,7 @@
       <div class="config-section">
         <div class="config-section-title">Voice & Audio</div>
         
-        <div class="config-gender-block">
-          <div class="config-gender-header">
-            <div class="config-text">
-              <div class="config-label">AI Voice Gender Tone</div>
-              <div class="config-desc">Select female or male acoustic voice persona for readouts</div>
-            </div>
-            <button id="test-voice-btn" class="studio-nav-pill test-voice-pill" type="button" title="Preview selected voice tone">
-              🔊 Test Voice
-            </button>
-          </div>
-          <div class="gender-segmented-control">
-            <button type="button" class="gender-segment-btn active" id="gender-btn-female" data-gender="female">
-              <span class="segment-icon">👩</span>
-              <span class="segment-text">Female Voice</span>
-            </button>
-            <button type="button" class="gender-segment-btn" id="gender-btn-male" data-gender="male">
-              <span class="segment-icon">👨</span>
-              <span class="segment-text">Male Voice</span>
-            </button>
-          </div>
-        </div>
+
 
         <label class="config-row">
           <div class="config-text">
