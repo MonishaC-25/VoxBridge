@@ -603,19 +603,8 @@
     if (isListening || isRecording) return;
     window.stopSpeaking();
 
-    // 1. Primary High-Speed Engine: Native Browser SpeechRecognition (Zero-Latency Streaming)
-    // We intentionally omit recognition.lang or set it to undefined/empty so the browser automatically listens and detects ANY language spoken (Japanese, Spanish, French, etc.) naturally!
-    if (recognition) {
-      try {
-        recognition.lang = ""; // Auto-detect any spoken language naturally
-        recognition.start();
-        return;
-      } catch (err) {
-        console.warn("Speech recognition fallback to MediaRecorder:", err);
-      }
-    }
-
-    // 2. Fallback: Studio MediaRecorder
+    // Directly use Studio MediaRecorder + Gemini Neural Multilingual Acoustic Transcriber
+    // This bypasses browser-specific SpeechRecognition gaps for Korean, Japanese, Arabic, and other regional scripts!
     startMediaRecorder();
   };
 
