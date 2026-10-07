@@ -1,0 +1,5 @@
+{
+  "name": "VoxBridge",
+  "description": "Talk in your language. Be understood in any. Real-time multilingual voice and text chat.",
+  "capabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

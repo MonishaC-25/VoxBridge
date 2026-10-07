@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>VoxBridge — Any Language In. Same Language Out.</title>
+  <meta name="description" content="VoxBridge is an AI-powered chatbot that lets customers communicate with a business in any language — through text or voice — without needing to select a language manually.">
+  <meta property="og:title" content="VoxBridge — Any Language In. Same Language Out.">
+  <meta property="og:description" content="VoxBridge is an AI-powered chatbot that lets customers communicate with a business in any language — through text or voice — without needing to select a language manually.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2244%22 fill=%22%233b82f6%22/><text y=%22.7em%22 x=%2250%25%22 text-anchor=%22middle%22 font-size=%2250%22 fill=%22%23ffffff%22>🎙️</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+  <!-- Loading veil -->
+  <div id="loading-screen" aria-live="polite">
+    <div class="loader-container">
+      <div class="sound-wave-loader">
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <div class="loader-brand">VoxBridge</div>
+      <div class="loader-sub">Any Language In. Same Language Out.</div>
+    </div>
+  </div>
+
+  <!-- SCREEN 1: MINIMALIST HOME PAGE -->
+  <section id="home-view" class="app-view active">
+    <nav class="home-nav">
+      <div class="nav-brand">
+        <span class="nav-mic-icon">🎙️</span>
+        <span class="nav-brand-title">VoxBridge</span>
+      </div>
+      <div class="nav-actions">
+        <button id="home-theme-toggle" class="nav-ghost-btn" type="button" aria-label="Toggle Theme">
+          <span class="theme-icon">🌓</span> <span class="theme-label">Theme</span>
+        </button>
+        <button id="nav-start-chat-btn" class="nav-primary-btn" type="button">
+          Start Conversation ➔
+        </button>
+      </div>
+    </nav>
+
+    <main class="home-hero">
+      <div class="hero-content">
+        <div class="hero-tag">
+          <span class="pulse-indicator"></span>
+          AI-Powered Multilingual Business Chatbot
+        </div>
+
+        <h1 class="hero-title">
+          Any Language In.<br>
+          <span class="gradient-text">Same Language Out.</span>
+        </h1>
+
+        <p class="hero-description">
+          VoxBridge is an AI-powered chatbot that lets customers communicate with a business in any language — through text or voice — without needing to select a language manually. It automatically detects the customer's language, generates an accurate AI response, and replies back in the same language, enabling seamless multilingual customer support for global businesses.
+        </p>
+
+        <!-- Customer Name Input Box before Starting (Mandatory Gate) -->
+        <div class="hero-name-card" id="hero-name-card">
+          <div class="name-input-header">
+            <label for="home-user-name" class="name-input-label">Enter your name to begin:</label>
+            <span class="required-pill">* Required to enter</span>
+          </div>
+          <div class="name-input-row">
+            <input type="text" id="home-user-name" class="name-text-input" placeholder="Your name (e.g. Alex, Priya, Carlos)…" maxlength="50" autocomplete="name" required autofocus>
+            <button id="launch-chat-btn" class="hero-main-cta" type="button">
+              <span>Start Conversation</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+          </div>
+          <div id="home-name-error" class="home-name-error hidden">
+            ⚠️ Please enter your name to enter VoxBridge.
+          </div>
+        </div>
+
+        <div class="hero-features-strip">
+          <div class="feature-item">
+            <span class="feature-icon">✨</span>
+            <div class="feature-text">
+              <strong>Auto-Language Detection</strong>
+              <span>Zero manual language selection required</span>
+            </div>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">🎙️</span>
+            <div class="feature-text">
+              <strong>Voice & Text in Sync</strong>
+              <span>Live microphone recognition & neural speech output</span>
+            </div>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">🔊</span>
+            <div class="feature-text">
+              <strong>Dual Voice Personas</strong>
+              <span>Instant selection between Female and Male natural voice tone</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </section>
+
+  <!-- SCREEN 2: CHATBOT WORKSPACE -->
+  <section id="chat-view" class="app-view">
+    <div class="studio-wrapper">
+      
+      <!-- Mobile Drawer Backdrop -->
+      <div id="sidebar-backdrop" class="sidebar-backdrop" aria-hidden="true"></div>
+
+      <!-- Control Sidebar -->
+      <aside id="chat-sidebar" class="studio-sidebar" aria-label="Sessions history">
+        
+        <!-- Sidebar Header -->
+        <div class="sidebar-top">
+          <div class="studio-brand">
+            <span class="brand-logo-icon">🎙️</span>
+            <div class="brand-meta">
+              <span class="brand-name">VoxBridge</span>
+              <span class="brand-sub">AI Customer Care</span>
+            </div>
+          </div>
+
+          <div class="sidebar-top-buttons">
+            <button id="back-to-home-btn" class="sidebar-icon-link" type="button" title="Return to home page">
+              🏠 Home
+            </button>
+            <button id="new-chat-btn" class="studio-action-btn" type="button" title="Start new conversation (Alt+N)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+              <span>New Chat</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Search in conversations -->
+        <div class="sidebar-search-box">
+          <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="history-search" class="search-input" placeholder="Search conversations…" autocomplete="off">
+        </div>
+
+        <!-- Support Tickets Quick Entry -->
+        <div style="padding: 0 12px; margin-top: 8px;">
+          <button id="sidebar-tickets-btn" class="sidebar-ticket-nav-btn" type="button" title="View raised support tickets">
+            <div class="sidebar-ticket-left">
+              <span>🎫</span>
+              <span>My Support Tickets</span>
+            </div>
+            <span class="sidebar-ticket-badge" id="sidebar-ticket-badge">0</span>
+          </button>
+        </div>
+
+        <!-- History List -->
+        <div class="sidebar-scrollable">
+          <div class="sidebar-category-label">Chat History</div>
+          <div id="history-list" class="history-list" role="list">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <!-- Sidebar Footer -->
+        <div class="sidebar-bottom">
+          <div class="sidebar-button-row">
+            <button id="theme-toggle" class="sidebar-mini-btn" type="button" title="Toggle theme appearance">
+              <span id="theme-icon">🌓</span>
+              <span id="theme-text">Theme</span>
+            </button>
+            <button id="export-all-btn" class="sidebar-mini-btn" type="button" title="Export all chat logs">
+              📥 <span>Export</span>
+            </button>
+            <button id="settings-trigger-btn" class="sidebar-mini-btn" type="button" title="Audio & Voice settings">
+              ⚙️ <span>Config</span>
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Chat Area -->
+      <main class="studio-main">
+        
+        <!-- Header -->
+        <header class="studio-header">
+          <div class="header-start">
+            <button id="sidebar-toggle-btn" class="studio-icon-btn toggle-sidebar" type="button" aria-label="Toggle sidebar">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
+
+            <button id="header-home-btn" class="studio-nav-pill" type="button" title="Go back to Home page">
+              ← Home
+            </button>
+
+            <div class="session-meta">
+              <div class="session-title-wrap">
+                <h2 id="current-chat-title" class="session-title" title="Double click to rename">
+                  Multilingual Support Session
+                </h2>
+                <span id="user-display-chip" class="user-name-tag" title="Click to change your name">
+                  👤 <span id="current-user-name">Customer</span> ✎
+                </span>
+              </div>
+              <div class="session-badges">
+                <span id="detected-flag" class="lang-flag">🌐</span>
+                <span id="detected-lang-label" class="lang-name">Ready · Auto-Detect</span>
+                <span class="bullet-sep">·</span>
+                <span id="speech-code-badge" class="speech-code-badge">MULTI</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Real-time Audio Visualizer Canvas -->
+          <div class="header-center">
+            <div class="visualizer-container" id="visualizer-container" title="Audio activity wave">
+              <canvas id="audio-visualizer-canvas" class="visualizer-canvas" width="200" height="28"></canvas>
+              <div id="visualizer-label" class="visualizer-label">VOICE READY</div>
+            </div>
+          </div>
+
+          <div class="header-end">
+            <!-- Voice Gender Picker (Female / Male) -->
+            <div class="voice-picker-container" title="Select Female or Male Voice">
+              <span class="picker-label">Voice:</span>
+              <select id="header-gender-picker" class="voice-select" aria-label="Select Female or Male Voice">
+                <option value="female">👩 Female Voice</option>
+                <option value="male">👨 Male Voice</option>
+              </select>
+              <button id="header-test-voice-btn" class="header-preview-btn" type="button" title="Preview selected voice tone">
+                🔊
+              </button>
+            </div>
+
+            <!-- Voice Accent Picker -->
+            <div class="voice-picker-container">
+              <span class="picker-label">Accent:</span>
+              <select id="lang-picker" class="voice-select" aria-label="Microphone accent override">
+                <option value="">✨ Auto-detect</option>
+                <optgroup label="🌐 Global Major Languages">
+                  <option value="en-US">🇺🇸 English</option>
+                  <option value="es-ES">🇪🇸 Spanish (Español)</option>
+                  <option value="fr-FR">🇫🇷 French (Français)</option>
+                  <option value="de-DE">🇩🇪 German (Deutsch)</option>
+                  <option value="it-IT">🇮🇹 Italian (Italiano)</option>
+                  <option value="pt-BR">🇧🇷 Portuguese (Português)</option>
+                  <option value="ru-RU">🇷🇺 Russian (Русский)</option>
+                  <option value="zh-CN">🇨🇳 Mandarin (中文)</option>
+                  <option value="ja-JP">🇯🇵 Japanese (日本語)</option>
+                  <option value="ko-KR">🇰🇷 Korean (한국어)</option>
+                  <option value="ar-SA">🇸🇦 Arabic (العربية)</option>
+                </optgroup>
+                <optgroup label="🇮🇳 South Asian & Indian Languages">
+                  <option value="hi-IN">🇮🇳 Hindi (हिन्दी)</option>
+                  <option value="ta-IN">🇮🇳 Tamil (தமிழ்)</option>
+                  <option value="te-IN">🇮🇳 Telugu (తెలుగు)</option>
+                  <option value="kn-IN">🇮🇳 Kannada (ಕನ್ನಡ)</option>
+                  <option value="ml-IN">🇮🇳 Malayalam (മലയാളം)</option>
+                  <option value="bn-IN">🇧🇩 Bengali (বাংলা)</option>
+                  <option value="mr-IN">🇮🇳 Marathi (मराठी)</option>
+                  <option value="gu-IN">🇮🇳 Gujarati (ગુજરાતી)</option>
+                  <option value="pa-IN">🇮🇳 Punjabi (ਪੰਜਾਬੀ)</option>
+                  <option value="ur-PK">🇵🇰 Urdu (اردو)</option>
+                  <option value="ne-NP">🇳🇵 Nepali (नेपाली)</option>
+                  <option value="si-LK">🇱🇰 Sinhala (සිංහල)</option>
+                </optgroup>
+                <optgroup label="🌍 Middle East & Africa">
+                  <option value="fa-IR">🇮🇷 Persian (فارسی)</option>
+                  <option value="he-IL">🇮🇱 Hebrew (עברית)</option>
+                  <option value="tr-TR">🇹🇷 Turkish (Türkçe)</option>
+                  <option value="sw-KE">🇰🇪 Swahili (Kiswahili)</option>
+                  <option value="am-ET">🇪🇹 Amharic (አማርኛ)</option>
+                </optgroup>
+                <optgroup label="🌏 Southeast & East Asia">
+                  <option value="vi-VN">🇻🇳 Vietnamese (Tiếng Việt)</option>
+                  <option value="th-TH">🇹🇭 Thai (ไทย)</option>
+                  <option value="id-ID">🇮🇩 Indonesian (Bahasa Indonesia)</option>
+                  <option value="ms-MY">🇲🇾 Malay (Bahasa Melayu)</option>
+                  <option value="fil-PH">🇵🇭 Filipino / Tagalog</option>
+                  <option value="my-MM">🇲🇲 Burmese (မြန်မာ)</option>
+                  <option value="km-KH">ខ្មែរ Khmer</option>
+                </optgroup>
+                <optgroup label="🇪🇺 European & Nordic Languages">
+                  <option value="nl-NL">🇳🇱 Dutch (Nederlands)</option>
+                  <option value="pl-PL">🇵🇱 Polish (Polski)</option>
+                  <option value="uk-UA">🇺🇦 Ukrainian (Українська)</option>
+                  <option value="el-GR">🇬🇷 Greek (Ελληνικά)</option>
+                  <option value="cs-CZ">🇨🇿 Czech (Čeština)</option>
+                  <option value="sk-SK">🇸🇰 Slovak (Slovenčina)</option>
+                  <option value="hu-HU">🇭🇺 Hungarian (Magyar)</option>
+                  <option value="ro-RO">🇷🇴 Romanian (Română)</option>
+                  <option value="bg-BG">🇧🇬 Bulgarian (Български)</option>
+                  <option value="hr-HR">🇭🇷 Croatian (Hrvatski)</option>
+                  <option value="sr-RS">🇷🇸 Serbian (Српски)</option>
+                  <option value="sv-SE">🇸🇪 Swedish (Svenska)</option>
+                  <option value="da-DK">🇩🇰 Danish (Dansk)</option>
+                  <option value="fi-FI">🇫🇮 Finnish (Suomi)</option>
+                  <option value="no-NO">🇳🇴 Norwegian (Norsk)</option>
+                  <option value="lt-LT">🇱🇹 Lithuanian (Lietuvių)</option>
+                  <option value="lv-LV">🇱🇻 Latvian (Latviešu)</option>
+                  <option value="et-EE">🇪🇪 Estonian (Eesti)</option>
+                  <option value="sl-SI">🇸🇮 Slovenian (Slovenščina)</option>
+                  <option value="ca-ES">🇪🇸 Catalan (Català)</option>
+                  <option value="eu-ES">🇪🇸 Basque (Euskara)</option>
+                  <option value="gl-ES">🇪🇸 Galician (Galego)</option>
+                  <option value="ga-IE">🇮🇪 Irish (Gaeilge)</option>
+                  <option value="cy-GB">🏴󠁧󠁢󠁷󠁬󠁳󠁿 Welsh (Cymraeg)</option>
+                  <option value="is-IS">🇮🇸 Icelandic (Íslenska)</option>
+                </optgroup>
+              </select>
+            </div>
+
+            <!-- Header Action Icons -->
+            <button id="shortcuts-btn" class="studio-icon-btn" type="button" title="Keyboard Shortcuts (Esc to close)">
+              <span style="font-weight: 700; font-size: 13px;">?</span>
+            </button>
+            <button id="export-chat-btn" class="studio-icon-btn" type="button" title="Download chat transcript">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            </button>
+            <button id="clear-btn" class="studio-icon-btn" type="button" title="Clear chat messages">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+            <button id="settings-btn" class="studio-icon-btn" type="button" title="Speech & UI Settings">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </button>
+          </div>
+        </header>
+
+        <!-- Message Stream -->
+        <section id="chat-box" class="studio-canvas" aria-live="polite">
+          
+          <!-- Starter Prompt View -->
+          <div id="starter-view" class="studio-hero">
+            <div class="hero-crest">
+              <div class="crest-waveform">
+                <span></span><span></span><span></span><span></span><span></span>
+              </div>
+              <span class="crest-badge">Autonomous Multilingual Communication</span>
+            </div>
+
+            <h3 class="hero-heading">Welcome, <span id="hero-greeting-name">Customer</span>!</h3>
+            <p class="hero-body">
+              Type or speak in your language. VoxBridge detects it instantly and replies back in the same language. You can also translate any response to other languages on-demand!
+            </p>
+
+            <!-- Step 2: Choose Female or Male Voice after entering -->
+            <div class="voice-persona-card" id="starter-voice-card">
+              <div class="voice-card-header">
+                <span class="voice-card-badge">🎙️ STEP 2: SELECT AI VOICE PERSONA</span>
+                <h4>Choose Your Preferred AI Voice Tone</h4>
+                <p>Select female or male acoustic voice tone for all speech audio. You can also switch this anytime in the top header.</p>
+              </div>
+              <div class="gender-segmented-control starter-voice-control">
+                <button type="button" class="gender-segment-btn active" id="starter-gender-female" data-gender="female">
+                  <span class="segment-icon">👩</span>
+                  <div class="segment-info">
+                    <strong>Female Voice</strong>
+                    <span>Warm, empathetic &amp; natural</span>
+                  </div>
+                </button>
+                <button type="button" class="gender-segment-btn" id="starter-gender-male" data-gender="male">
+                  <span class="segment-icon">👨</span>
+                  <div class="segment-info">
+                    <strong>Male Voice</strong>
+                    <span>Crisp, authoritative &amp; executive</span>
+                  </div>
+                </button>
+              </div>
+              <div class="voice-card-actions">
+                <button id="starter-test-voice-btn" class="header-preview-btn starter-voice-preview" type="button" title="Test selected voice">
+                  🔊 Preview Selected Voice Tone
+                </button>
+              </div>
+            </div>
+
+            <div class="prompt-shelf">
+              <div class="prompts-matrix">
+                <button class="prompt-tile" type="button" data-text="안녕하세요! 주문 배송 현황과 반품 절차를 안내해 주세요.">
+                  <div class="tile-header">
+                    <span class="tile-lang">🇰🇷 South Korea (한국어)</span>
+                    <span class="tile-arrow">↗</span>
+                  </div>
+                  <div class="tile-text">"안녕하세요! 주문 배송 현황과 반품 절차를 안내해 주세요."</div>
+                </button>
+
+                <button class="prompt-tile" type="button" data-text="こんにちは！サポートの営業時間と企業向け料金プランを教えてください。">
+                  <div class="tile-header">
+                    <span class="tile-lang">🇯🇵 Japan (日本語)</span>
+                    <span class="tile-arrow">↗</span>
+                  </div>
+                  <div class="tile-text">"こんにちは！サポートの営業時間と企業向け料金プランを教えてください。"</div>
+                </button>
+
+                <button class="prompt-tile" type="button" data-text="您好！请问如何查询订单发货进度以及申请发票和退款？">
+                  <div class="tile-header">
+                    <span class="tile-lang">🇨🇳 China (中文)</span>
+                    <span class="tile-arrow">↗</span>
+                  </div>
+                  <div class="tile-text">"您好！请问如何查询订单发货进度以及申请发票和退款？"</div>
+                </button>
+
+                <button class="prompt-tile" type="button" data-text="नमस्ते! क्या आप मुझे व्यावसायिक सेवाएं, मूल्य और सहायता समय बता सकते हैं?">
+                  <div class="tile-header">
+                    <span class="tile-lang">🇮🇳 India (हिन्दी)</span>
+                    <span class="tile-arrow">↗</span>
+                  </div>
+                  <div class="tile-text">"नमस्ते! क्या आप मुझे व्यावसायिक सेवाएं, मूल्य और सहायता समय बता सकते हैं?"</div>
+                </button>
+
+                <button class="prompt-tile" type="button" data-text="Bonjour ! Quels sont vos horaires de support et les options de facturation ?">
+                  <div class="tile-header">
+                    <span class="tile-lang">🇫🇷 France (Français)</span>
+                    <span class="tile-arrow">↗</span>
+                  </div>
+                  <div class="tile-text">"Bonjour ! Quels sont vos horaires de support et les options de facturation ?"</div>
+                </button>
+
+                <button class="prompt-tile" type="button" data-text="Guten Tag! Wie kann ich meine Sendung verfolgen und ein Ticket erstellen?">
+                  <div class="tile-header">
+                    <span class="tile-lang">🇩🇪 Germany (Deutsch)</span>
+                    <span class="tile-arrow">↗</span>
+                  </div>
+                  <div class="tile-text">"Guten Tag! Wie kann ich meine Sendung verfolgen und ein Ticket erstellen?"</div>
+                </button>
+
+                <button class="prompt-tile" type="button" data-text="¡Hola! ¿Cómo puedo rastrear el estado de mi pedido y contactar con un agente?">
+                  <div class="tile-header">
+                    <span class="tile-lang">🇪🇸 Spain (Español)</span>
+                    <span class="tile-arrow">↗</span>
+                  </div>
+                  <div class="tile-text">"¡Hola! ¿Cómo puedo rastrear el estado de mi pedido y contactar con un agente?"</div>
+                </button>
+
+                <button class="prompt-tile" type="button" data-text="مرحباً! كيف يمكنني تتبع طلبي والاستفسار عن باقات الأسعار المتاحة؟">
+                  <div class="tile-header">
+                    <span class="tile-lang">🇸🇦 Saudi Arabia (العربية)</span>
+                    <span class="tile-arrow">↗</span>
+                  </div>
+                  <div class="tile-text">"مرحباً! كيف يمكنني تتبع طلبي والاستفسار عن باقات الأسعار المتاحة؟"</div>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Voice Status Banner -->
+
+        <div id="voice-status-bar" class="studio-status-strip hidden" aria-live="polite">
+          <div class="strip-content">
+            <div class="live-wave-equalizer">
+              <span></span><span></span><span></span><span></span><span></span>
+            </div>
+            <span id="voice-status-text" class="strip-text">Listening for speech…</span>
+          </div>
+          <button id="stop-voice-btn" class="strip-stop-btn" type="button">Stop</button>
+        </div>
+
+        <!-- Enterprise Customer Care Quick Action Chips -->
+        <div class="business-care-dock-strip">
+          <span class="care-strip-badge">⚡ Quick Support:</span>
+          <div class="care-chips-carousel">
+            <button class="care-quick-chip" type="button" data-prompt="What are your customer support operating hours and availability?">
+              ⏰ Support Hours
+            </button>
+            <button class="care-quick-chip" type="button" data-prompt="Can you help me track my recent order or shipment status?">
+              📦 Track Order
+            </button>
+            <button class="care-quick-chip" type="button" data-prompt="I have an inquiry regarding my invoice, billing charges, or refund status.">
+              💳 Billing &amp; Refunds
+            </button>
+            <button class="care-quick-chip" type="button" data-prompt="What subscription pricing and corporate enterprise plans do you offer?">
+              💰 Plans &amp; Pricing
+            </button>
+            <button class="care-quick-chip ticket-trigger-btn" type="button" id="dock-ticket-btn">
+              🎫 Open Support Ticket
+            </button>
+          </div>
+        </div>
+
+        <!-- Input Dock -->
+        <footer class="studio-dock">
+          <div class="dock-container">
+            <form id="chat-form" class="dock-form" onsubmit="return false;">
+              
+              <button id="mic-btn" class="dock-mic-btn" type="button" title="Speak message (Alt+M or click)">
+                <svg class="mic-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+                <span class="mic-btn-text">Voice</span>
+              </button>
+
+              <div class="dock-input-wrapper">
+                <textarea
+                  id="message-input"
+                  class="dock-textarea"
+                  placeholder="Speak or type in any language (Press Enter to send)…"
+                  rows="1"
+                  maxlength="1000"
+                  autocomplete="off"
+                ></textarea>
+              </div>
+
+              <button id="send-btn" class="dock-send-btn" type="submit" aria-label="Send message">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </button>
+            </form>
+
+            <div class="dock-meta-row">
+              <div class="dock-meta-left">
+                <span class="live-dot" id="handsfree-dot"></span>
+                <span id="handsfree-label" class="handsfree-text">Hands-Free: Standby</span>
+                <button id="quick-handsfree-toggle" class="dock-link-btn" type="button">Toggle</button>
+              </div>
+              <div class="dock-meta-right">
+                <span class="keyboard-hint">Enter ↵ to send</span>
+                <span id="char-count" class="char-meter">0 / 1000</span>
+              </div>
+            </div>
+          </div>
+        </footer>
+      </main>
+    </div>
+  </section>
+
+  <!-- MODAL: ENTER CUSTOMER NAME BEFORE SESSION -->
+  <div id="name-modal" class="modal-scrim" aria-hidden="true">
+    <div class="studio-dialog name-entry-dialog">
+      <div class="dialog-content">
+        <div class="dialog-icon-badge">👤</div>
+        <h3>Welcome to VoxBridge</h3>
+        <p>Please enter your name to start your multilingual session. Our AI will address you personally and record your session for your service provider.</p>
+        <div class="name-dialog-form">
+          <input type="text" id="modal-user-name-input" class="search-input modal-name-field" placeholder="Enter your full name (e.g. Alex Carter)…" maxlength="50" autocomplete="name" autofocus>
+          <span id="name-error-msg" class="name-error-text hidden">Please enter your name to continue.</span>
+          
+          <div class="modal-voice-picker-group">
+            <div class="modal-voice-header">
+              <label class="name-input-label">Preferred AI Voice Tone</label>
+              <button id="modal-test-voice-btn" class="studio-nav-pill test-voice-pill" type="button" title="Test selected voice">
+                🔊 Preview
+              </button>
+            </div>
+            <div class="gender-segmented-control">
+              <button type="button" class="gender-segment-btn active" id="modal-gender-female" data-gender="female">
+                <span class="segment-icon">👩</span>
+                <span class="segment-text">Female Voice</span>
+              </button>
+              <button type="button" class="gender-segment-btn" id="modal-gender-male" data-gender="male">
+                <span class="segment-icon">👨</span>
+                <span class="segment-text">Male Voice</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="dialog-actions">
+        <button id="modal-name-submit-btn" class="dialog-btn primary-confirm" type="button">
+          Enter VoxBridge ➔
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Panel -->
+  <div id="settings-backdrop" class="modal-scrim" aria-hidden="true"></div>
+  <aside id="settings-panel" class="studio-settings-drawer" aria-label="Audio and Model Settings">
+    <div class="drawer-header">
+      <div class="drawer-title-group">
+        <h3>VoxBridge Settings</h3>
+        <span class="drawer-sub">Audio & Display Configuration</span>
+      </div>
+      <button id="settings-close" class="close-drawer" type="button" aria-label="Close configuration">✕</button>
+    </div>
+
+    <div class="drawer-body">
+      
+      <div class="config-section">
+        <div class="config-section-title">Voice & Audio</div>
+        
+        <div class="config-gender-block">
+          <div class="config-gender-header">
+            <div class="config-text">
+              <div class="config-label">AI Voice Gender Tone</div>
+              <div class="config-desc">Select female or male acoustic voice persona for readouts</div>
+            </div>
+            <button id="test-voice-btn" class="studio-nav-pill test-voice-pill" type="button" title="Preview selected voice tone">
+              🔊 Test Voice
+            </button>
+          </div>
+          <div class="gender-segmented-control">
+            <button type="button" class="gender-segment-btn active" id="gender-btn-female" data-gender="female">
+              <span class="segment-icon">👩</span>
+              <span class="segment-text">Female Voice</span>
+            </button>
+            <button type="button" class="gender-segment-btn" id="gender-btn-male" data-gender="male">
+              <span class="segment-icon">👨</span>
+              <span class="segment-text">Male Voice</span>
+            </button>
+          </div>
+        </div>
+
+        <label class="config-row">
+          <div class="config-text">
+            <div class="config-label">Auto-Speech Playback</div>
+            <div class="config-desc">Automatically read responses aloud in the customer's language accent</div>
+          </div>
+          <input type="checkbox" id="autospeak-toggle" class="studio-toggle" checked>
+        </label>
+
+        <label class="config-row">
+          <div class="config-text">
+            <div class="config-label">Hands-Free Conversation</div>
+            <div class="config-desc">Automatically reopen the microphone after speech playback finishes</div>
+          </div>
+          <input type="checkbox" id="handsfree-toggle" class="studio-toggle">
+        </label>
+
+        <div class="config-slider-group">
+          <div class="slider-meta">
+            <span class="config-label">Speech Velocity</span>
+            <span id="speed-display" class="mono-value">1.0x</span>
+          </div>
+          <input type="range" id="speed-slider" class="studio-range" min="0.6" max="1.5" step="0.1" value="1.0">
+          <div class="slider-scale">
+            <span>0.6x (Slower)</span>
+            <span>1.0x (Normal)</span>
+            <span>1.5x (Faster)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="config-section">
+        <div class="config-section-title">Customer Name</div>
+        <div class="config-input-group">
+          <label for="settings-user-name" class="config-label">Your Customer Name</label>
+          <input type="text" id="settings-user-name" class="search-input" placeholder="Your name for personalized support…">
+        </div>
+      </div>
+
+      <div class="config-section">
+        <div class="config-section-title">Theme & Appearance</div>
+        <label class="config-row">
+          <div class="config-text">
+            <div class="config-label">Dark Theme</div>
+            <div class="config-desc">Cool midnight slate interface (No brown tones)</div>
+          </div>
+          <input type="checkbox" id="dark-toggle" class="studio-toggle" checked>
+        </label>
+        <label class="config-row" style="margin-top: 10px;">
+          <div class="config-text">
+            <div class="config-label">Translation Previews</div>
+            <div class="config-desc">Display instant 22+ language translation picker below AI responses</div>
+          </div>
+          <input type="checkbox" id="show-translations-toggle" class="studio-toggle" checked>
+        </label>
+      </div>
+
+      <div class="config-section">
+        <div class="config-section-title">Keyboard Shortcuts</div>
+        <div class="hotkey-grid">
+          <div class="hotkey-row"><span>Send query</span> <kbd>Enter</kbd></div>
+          <div class="hotkey-row"><span>Multiline newline</span> <kbd>Shift + Enter</kbd></div>
+          <div class="hotkey-row"><span>Toggle voice microphone</span> <kbd>Alt + M</kbd></div>
+          <div class="hotkey-row"><span>New chat session</span> <kbd>Alt + N</kbd></div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Clear Confirmation Dialog -->
+  <div id="clear-modal" class="modal-scrim" aria-hidden="true">
+    <div class="studio-dialog">
+      <div class="dialog-content">
+        <div class="dialog-icon-badge" style="background: rgba(239, 68, 68, 0.12); color: #ef4444; font-size: 24px; margin-bottom: 12px;">🧹</div>
+        <h3>Clear Current Session?</h3>
+        <p>This action will clear all messages in this conversation. This cannot be undone.</p>
+      </div>
+      <div class="dialog-actions">
+        <button id="clear-cancel" class="dialog-btn secondary" type="button">Cancel (Esc)</button>
+        <button id="clear-confirm" class="dialog-btn destructive" type="button">Clear Messages</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Session Confirmation Dialog -->
+  <div id="delete-session-modal" class="modal-scrim" aria-hidden="true">
+    <div class="studio-dialog delete-session-dialog">
+      <div class="dialog-content">
+        <div class="dialog-icon-badge" style="background: rgba(239, 68, 68, 0.12); color: #ef4444; font-size: 24px; margin-bottom: 12px;">🗑️</div>
+        <h3 id="delete-modal-title">Delete Chat Session?</h3>
+        <p id="delete-modal-desc">Are you sure you want to delete "<span id="delete-session-name" style="font-weight: 600; color: var(--text-primary);"></span>"? All messages and conversation history in this session will be permanently removed. This action cannot be undone.</p>
+      </div>
+      <div class="dialog-actions">
+        <button id="delete-session-cancel" class="dialog-btn secondary" type="button">Cancel (Esc)</button>
+        <button id="delete-session-confirm" class="dialog-btn destructive" type="button">Delete Session</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: MICROPHONE PERMISSION GUIDE -->
+  <div id="mic-permission-modal" class="modal-scrim" aria-hidden="true">
+    <div class="studio-dialog mic-error-dialog">
+      <div class="dialog-content">
+        <div class="dialog-icon-badge" style="background: rgba(244, 63, 94, 0.1); color: #f43f5e; font-size: 2rem; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; border-radius: 50%; margin: 0 auto 15px auto;">🎙️</div>
+        <h3 style="color: #f43f5e; font-size: 1.25rem; font-weight: 700; text-align: center;">Microphone Access Required</h3>
+        <p style="margin-top: 10px; font-size: 0.95rem; line-height: 1.5; color: var(--text-secondary); text-align: center;">
+          VoxBridge needs microphone permissions to capture your speech and translate it in real-time. 
+        </p>
+        <div style="background: var(--bg-hover, rgba(255,255,255,0.03)); padding: 16px; border-radius: 8px; margin-top: 20px; font-size: 0.9rem; text-align: left; border-left: 3px solid #f43f5e;">
+          <strong style="display: block; margin-bottom: 8px; color: var(--text-primary, #fff);">How to allow microphone access:</strong>
+          <ol style="margin: 0; padding-left: 20px; line-height: 1.6; color: var(--text-secondary, #94a3b8);">
+            <li style="margin-bottom: 6px;">Click the <strong>lock / settings icon</strong> 🔒 next to the web address bar at the top of your browser.</li>
+            <li style="margin-bottom: 6px;">Change the <strong>Microphone</strong> permission from Blocked to <strong>Allow</strong>.</li>
+            <li style="margin-bottom: 0;">If you are using AI Studio inside an iFrame, click the <strong>Shared App URL</strong> at the top right of the builder to launch in a new tab where microphone popups work instantly!</li>
+          </ol>
+        </div>
+      </div>
+      <div class="dialog-actions" style="margin-top: 24px; display: flex; gap: 10px; justify-content: flex-end; width: 100%;">
+        <button id="mic-launch-standalone-btn" class="dialog-btn" style="background: #3b82f6; color: #fff; border-color: #3b82f6; font-weight: 600; padding: 10px 16px; border-radius: 6px; cursor: pointer; flex-grow: 1; text-align: center;" type="button">
+          🚀 Open Standalone (Fixes Permission)
+        </button>
+        <button id="mic-modal-close-btn" class="dialog-btn secondary" style="font-weight: 600; padding: 10px 16px; border-radius: 6px; cursor: pointer;" type="button">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: KEYBOARD SHORTCUTS -->
+  <div id="shortcuts-modal" class="modal-scrim" aria-hidden="true">
+    <div class="studio-dialog shortcuts-dialog">
+      <div class="dialog-content">
+        <div class="dialog-icon-badge">⌨️</div>
+        <h3>Keyboard Shortcuts</h3>
+        <p>Control VoxBridge completely with your keyboard for lightning fast customer interactions.</p>
+        <div class="hotkey-grid-modal">
+          <div class="hotkey-row"><span>Close any window / Cancel voice</span> <kbd>Esc</kbd></div>
+          <div class="hotkey-row"><span>Send query</span> <kbd>Enter</kbd></div>
+          <div class="hotkey-row"><span>Multiline newline</span> <kbd>Shift + Enter</kbd></div>
+          <div class="hotkey-row"><span>Toggle voice microphone</span> <kbd>Alt + M</kbd></div>
+          <div class="hotkey-row"><span>Start new conversation</span> <kbd>Alt + N</kbd></div>
+          <div class="hotkey-row"><span>Toggle theme appearance</span> <kbd>Alt + T</kbd></div>
+          <div class="hotkey-row"><span>Open Settings drawer</span> <kbd>Alt + S</kbd></div>
+        </div>
+      </div>
+      <div class="dialog-actions">
+        <button id="shortcuts-modal-close" class="dialog-btn secondary" type="button">
+          Close (Esc)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: EXPORT CONVERSATION TRANSCRIPT -->
+  <div id="export-modal" class="modal-scrim" aria-hidden="true">
+    <div class="studio-dialog export-dialog">
+      <div class="dialog-content">
+        <div class="dialog-icon-badge">📥</div>
+        <h3>Save Conversation Transcript</h3>
+        <p>Save or print a copy of your chat session for your personal records or support reference.</p>
+        <div class="export-options-grid">
+          <button id="export-format-txt" class="export-tile-btn" type="button">
+            <span class="export-tile-icon">📄</span>
+            <div class="export-tile-text">
+              <strong>Save as Text Document (.txt)</strong>
+              <span>Simple, universal file that opens on any phone, tablet, or PC in Notepad or Notes</span>
+            </div>
+          </button>
+          <button id="export-format-pdf" class="export-tile-btn" type="button">
+            <span class="export-tile-icon">🖨️</span>
+            <div class="export-tile-text">
+              <strong>Print or Save as PDF</strong>
+              <span>Clean formatted transcript document ready to print or save directly as a PDF</span>
+            </div>
+          </button>
+        </div>
+      </div>
+      <div class="dialog-actions">
+        <button id="export-modal-close" class="dialog-btn secondary" type="button">
+          Cancel (Esc)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ENTERPRISE SUPPORT TICKET & ESCALATION CENTER -->
+  <div id="ticket-modal" class="modal-scrim" aria-hidden="true">
+    <div class="studio-dialog ticket-dialog-advanced">
+      
+      <!-- Modal Header -->
+      <div class="ticket-modal-header">
+        <div class="ticket-brand-badge">
+          <div class="dialog-icon-badge" style="background: rgba(16, 185, 129, 0.12); color: #10b981; margin-bottom: 0;">🎫</div>
+          <div>
+            <h3>Support & Ticket Center</h3>
+            <p>Track, manage, and escalate customer inquiries</p>
+          </div>
+        </div>
+        <button id="ticket-close-x-btn" class="modal-close-icon" type="button" aria-label="Close modal">✕</button>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="ticket-tab-nav">
+        <button id="tab-ticket-history-btn" class="ticket-tab-btn active" type="button">
+          📋 Ticket History (<span id="ticket-tab-count">0</span>)
+        </button>
+        <button id="tab-ticket-create-btn" class="ticket-tab-btn" type="button">
+          ➕ Raise New Ticket
+        </button>
+      </div>
+
+      <!-- TAB 1: TICKET HISTORY PANEL -->
+      <div id="ticket-history-panel" class="ticket-panel-content active">
+        <!-- Search & Filter Controls -->
+        <div class="ticket-filter-bar">
+          <div class="ticket-search-box">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" id="ticket-history-search" placeholder="Search tickets by ID, topic, or keyword…" autocomplete="off">
+          </div>
+          <div class="ticket-status-pills">
+            <button class="status-filter-pill active" data-filter="all" type="button">All</button>
+            <button class="status-filter-pill" data-filter="Open" type="button">Open</button>
+            <button class="status-filter-pill" data-filter="In Review" type="button">In Review</button>
+            <button class="status-filter-pill" data-filter="Resolved" type="button">Resolved</button>
+          </div>
+        </div>
+
+        <!-- Tickets List Container -->
+        <div id="ticket-cards-list" class="ticket-cards-list">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+      <!-- TAB 2: CREATE TICKET FORM -->
+      <div id="ticket-create-panel" class="ticket-panel-content">
+        <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 14px;">
+          If your inquiry requires formal human follow-up or account escalation, submit a ticket directly to our tier-2 support team.
+        </p>
+
+        <form id="support-ticket-form" class="ticket-form" onsubmit="return false;">
+          <div class="ticket-id-preview-row">
+            <span class="form-label-tag">Assigned Ticket Reference:</span>
+            <span class="ticket-id-badge" id="generated-ticket-id">#VB-78241</span>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label" for="ticket-customer-name">Customer Name</label>
+              <input type="text" id="ticket-customer-name" class="ticket-input" readonly>
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label class="form-label" for="ticket-priority">Priority Level</label>
+              <select id="ticket-priority" class="ticket-select">
+                <option value="Normal">🟢 Normal (Within 24h)</option>
+                <option value="High">🟡 High (Within 4h)</option>
+                <option value="Urgent">🔴 Urgent (Immediate Escalation)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="ticket-category">Inquiry Category</label>
+            <select id="ticket-category" class="ticket-select">
+              <option value="Billing & Refunds">💳 Billing &amp; Duplicate Charge / Refund</option>
+              <option value="Order & Logistics">📦 Order Tracking &amp; Delivery</option>
+              <option value="Technical Support">⚙️ Integration &amp; Technical Bug</option>
+              <option value="Account Management">👤 Account &amp; Login Issue</option>
+              <option value="General Support">💬 General Business Inquiry</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="ticket-summary">Case Details / Context</label>
+            <textarea id="ticket-summary" class="ticket-textarea" rows="3" placeholder="Provide extra details for the assigned human specialist…"></textarea>
+          </div>
+
+          <div class="dialog-actions" style="margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--border-subtle);">
+            <button id="ticket-cancel-btn" class="dialog-btn secondary" type="button">Cancel</button>
+            <button id="ticket-submit-btn" class="dialog-btn primary-confirm" type="button">
+              Submit Ticket ➔
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="/static/js/voice.js"></script>
+  <script src="/static/js/chat.js"></script>
+</body>
+</html>
